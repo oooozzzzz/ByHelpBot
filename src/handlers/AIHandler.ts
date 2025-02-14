@@ -46,7 +46,7 @@ export const replyInSocialIntegration = async (
 	const lead = await searchCurrentLeads(branchId, branchId, clientId);
 	// const lead = allLeads!.find((l) => l.clientId === clientId);
 	const leadId = lead!.Id;
-	if (!AILeads.includes(leadId)) return;
+	// if (!AILeads.includes(leadId)) return;
 	await createThread({ clientId, branchId, leadId });
 	const body = (message: string) => ({
 		Message: message,

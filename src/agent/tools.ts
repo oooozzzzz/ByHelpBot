@@ -249,7 +249,12 @@ export const createClientRecord = tool(
 			async (id) => await getServiceInfo(id, branchId),
 		);
 
-		const { Duration } = (await Promise.all(servicesInfo)).reduce(
+		const allServices = (await Promise.all(servicesInfo)).map((service) => {
+			return { ...service, Count: 1 };
+		});
+		console.log(allServices);
+
+		const { Duration } = allServices.reduce(
 			(acc, service) => {
 				acc.Duration += service.Duration;
 				return acc;
