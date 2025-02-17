@@ -4,3 +4,6 @@ node_modules
 prisma/dev.db
 build
 checkpointer
+prisma/dev.db
+checkpointer/checkpoints.db
+checkpointer/checkpoints.db-wal

@@ -357,6 +357,7 @@ export const serviceTimes = tool(
 			});
 
 			console.log(result);
+			if (result.length === 0) return "Нет доступного времени";
 			return result.join("\n");
 		} catch (error) {
 			console.log(error);

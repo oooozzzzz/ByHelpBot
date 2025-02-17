@@ -1,4 +1,4 @@
-import moment, { Moment } from "moment";
+import moment, { Moment } from "moment-timezone";
 import { hubConnection } from "../signalR";
 import { getAIUser, getBasicLeads } from "./crmInfo";
 import { api } from "../bot";
@@ -83,11 +83,29 @@ interface AvailableTimeSlot {
 	end: string; // Конец свободного интервала
 }
 
+function isTimeSlotBooked(
+	unavailableTimes: UnavailableTime[],
+	slotStart: Moment,
+	slotEnd: Moment,
+): boolean {
+	return unavailableTimes.some(({ start, end }) => {
+		const busyStart = moment(start);
+		const busyEnd = moment(end);
+
+		return (
+			slotStart.isBetween(busyStart, busyEnd, null, "[)") ||
+			slotEnd.isBetween(busyStart, busyEnd, null, "(]") ||
+			(slotStart.isSameOrBefore(busyStart) && slotEnd.isSameOrAfter(busyEnd))
+		);
+	});
+}
+
 // Функция для поиска свободных интервалов
 export function findAvailableTimes(
 	masters: Master[],
 	serviceDuration: number,
 	step: number = 15,
+	currentTime: Moment = moment().tz("Europe/Moscow"),
 ): AvailableTimeSlot[] {
 	const availableTimes: AvailableTimeSlot[] = [];
 
@@ -95,37 +113,30 @@ export function findAvailableTimes(
 		const masterStart = moment(master.workingHours.start);
 		const masterEnd = moment(master.workingHours.end);
 
-		let currentTime = masterStart.clone();
+		// Начинаем проверку с максимального из: начала рабочего дня или текущего времени
+		const startTime = moment.max(masterStart, currentTime);
+		let currentTimePointer = startTime.clone();
 
-		// Перебираем время, пока не достигнем конца рабочего дня
-		while (currentTime.isBefore(masterEnd)) {
-			const slotStart = currentTime.clone();
+		while (currentTimePointer.isBefore(masterEnd)) {
+			const slotStart = currentTimePointer.clone();
 			const slotEnd = slotStart.clone().add(serviceDuration, "minutes");
 
-			// Проверяем, что интервал полностью в рабочих часах
-			if (slotEnd.isSameOrBefore(masterEnd)) {
-				// Проверка на занятость
-				const isAvailable = !master.unavailableTimes.some(({ start, end }) => {
-					const busyStart = moment(start);
-					const busyEnd = moment(end);
-
-					return (
-						slotStart.isBetween(busyStart, busyEnd, null, "[)") ||
-						slotEnd.isBetween(busyStart, busyEnd, null, "(]") ||
-						(slotStart.isSameOrBefore(busyStart) &&
-							slotEnd.isSameOrAfter(busyEnd))
-					);
+			// Проверка трех условий:
+			// 1. Интервал укладывается в рабочие часы
+			// 2. Интервал не пересекается с занятым временем
+			// 3. Дата интервала >= текущей даты
+			if (
+				slotEnd.isSameOrBefore(masterEnd) &&
+				slotStart.isSameOrAfter(currentTime, "day") && // Проверка дня
+				!isTimeSlotBooked(master.unavailableTimes, slotStart, slotEnd)
+			) {
+				availableTimes.push({
+					start: slotStart.format("YYYY-MM-DDTHH:mm:ss"),
+					end: slotEnd.format("YYYY-MM-DDTHH:mm:ss"),
 				});
-
-				if (isAvailable) {
-					availableTimes.push({
-						start: slotStart.format("YYYY-MM-DDTHH:mm:ss"),
-						end: slotEnd.format("YYYY-MM-DDTHH:mm:ss"),
-					});
-				}
 			}
 
-			currentTime.add(step, "minutes");
+			currentTimePointer.add(step, "minutes");
 		}
 	});
 
