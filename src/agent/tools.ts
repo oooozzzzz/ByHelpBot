@@ -343,7 +343,10 @@ export const serviceTimes = tool(
 			});
 
 			const serviceInfo = await getServiceInfo(serviceId, branchId);
-			const duration = serviceInfo.Duration;
+			let duration = serviceInfo.Duration;
+			if (duration === 0) {
+				duration = 30;
+			}
 
 			const intervals = findAvailableTimes(allRecords, duration);
 			const mergedIntervals = mergeIntervals(intervals);
@@ -352,6 +355,8 @@ export const serviceTimes = tool(
 				duration,
 			);
 			const result = adjustedIntervals.map((interval) => {
+				if (interval.start === interval.end)
+					return `${moment(interval.start).format("HH:mm")},`;
 				return `${moment(interval.start).format("HH:mm")} - ${moment(
 					interval.end,
 				).format("HH:mm")},`;
