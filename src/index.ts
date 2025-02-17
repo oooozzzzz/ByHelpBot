@@ -25,8 +25,7 @@ import {
 } from "./services/serviceFunctions";
 import { createOrganization, createThread } from "./services/db";
 
-async function main() {
-	const ORGANIZATION_ID = 1;
+async function main(ORGANIZATION_ID: number) {
 	moment.locale("ru");
 
 	const aiUser = await getAIUser(ORGANIZATION_ID);
@@ -59,4 +58,4 @@ bot.on("message:text", async (ctx: Context) => {
 });
 bot.catch(async (err) => console.log(err));
 bot.start();
-main();
+main(1);
