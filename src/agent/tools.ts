@@ -273,7 +273,7 @@ export const createClientRecord = tool(
 			Phone: clientInfo.Phone1,
 			ClientId: userId,
 			EmployeeId: employeeId,
-			ClientServices: await Promise.all(servicesInfo),
+			ClientServices: allServices,
 			TimeS,
 			TimeE,
 			Comment: "Запись создана при помощи ИИ-сотрудника",
@@ -313,6 +313,7 @@ export const serviceTimes = tool(
 			const employees = await getEmployeesByService(branchId, date, 1, [
 				serviceId,
 			]);
+			console.log(employees);
 			if (employees.length === 0) {
 				return "Нет мастеров, которые оказывают такую услугу";
 			}
