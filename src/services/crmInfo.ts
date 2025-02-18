@@ -5,7 +5,7 @@ import {
 	AIUser,
 	Branch,
 	client,
-	createRecotdBody,
+	createRecordBody,
 	employee,
 	employeeByService,
 	employeeRecordsResponse,
@@ -131,7 +131,7 @@ export const getEmployeesByService = async (
 };
 
 export const createRecord = async (
-	body: createRecotdBody,
+	body: createRecordBody,
 	ActiveBranchId: number,
 ) => {
 	const response = await crm.post("/api/Records/UpdateRecord", body, {

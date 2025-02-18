@@ -108,7 +108,21 @@ export type tag = {
 	SystemId: string | null;
 };
 
-export type createRecotdBody = {
+type serviceInRecordBody = {
+	Id: number;
+	Name: string;
+	CategoryId: number;
+	Category: string;
+	PriceS: number;
+	PriceE: number;
+	Duration: number;
+	Count: number;
+	UserId?: number;
+	Discount: number;
+	Paid: number;
+};
+
+export type createRecordBody = {
 	Id?: number;
 	BranchId: number;
 	EmployeeId: number;
@@ -119,7 +133,7 @@ export type createRecotdBody = {
 	Phone: string;
 	IsPhoneVerified?: boolean;
 	PhoneCountryId?: number;
-	ClientServices?: service[];
+	ClientServices?: serviceInRecordBody[];
 	Status?: string;
 	Comment?: string;
 	IsEmployeeLocked?: boolean;

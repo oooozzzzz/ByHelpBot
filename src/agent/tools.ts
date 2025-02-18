@@ -20,7 +20,7 @@ import { LLM } from "./RAG_class";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { time } from "console";
 import moment from "moment";
-import { createRecotdBody } from "../types";
+import { createRecordBody } from "../types";
 import {
 	adjustAvailableIntervals,
 	asyncMap,
@@ -228,21 +228,25 @@ export const getParticularServiceInfo = tool(
 );
 
 export const createClientRecord = tool(
-	async ({
-		userId,
-		branchId,
-		servicesIds,
-		employeeId,
-		time,
-	}: {
-		userId: number;
-		branchId: number;
-		employeeId: number;
-		servicesIds: number[];
-		time: string;
-	}) => {
+	async (
+		{
+			userId,
+			branchId,
+			servicesIds,
+			employeeId,
+			time,
+		}: {
+			userId: number;
+			branchId: number;
+			employeeId: number;
+			servicesIds: number[];
+			time: string;
+		},
+		options,
+	) => {
 		console.log("Создаю запись...");
 		console.log(userId, branchId, employeeId, servicesIds, time);
+		const thread = options.configurable?.thread_id;
 		const TimeS = moment(time).format("YYYY-MM-DDTHH:mm:ss");
 
 		const servicesInfo = servicesIds.map(
@@ -250,7 +254,18 @@ export const createClientRecord = tool(
 		);
 
 		const allServices = (await Promise.all(servicesInfo)).map((service) => {
-			return { ...service, Count: 1 };
+			return {
+				Id: service.Id,
+				Count: 1,
+				Name: service.Name,
+				CategoryId: service.CategoryId,
+				Category: service.Category,
+				PriceS: service.PriceS,
+				PriceE: service.PriceE,
+				Duration: service.Duration,
+				Paid: 0,
+				Discount: 0,
+			};
 		});
 		console.log(allServices);
 
@@ -267,7 +282,7 @@ export const createClientRecord = tool(
 		const TimeE = moment(TimeS)
 			.add(Duration, "minutes")
 			.format("YYYY-MM-DDTHH:mm:ss");
-		const requset: createRecotdBody = {
+		const requset: createRecordBody = {
 			BranchId: branchId,
 			NameFirst: clientInfo.NameFirst,
 			Phone: clientInfo.Phone1,
