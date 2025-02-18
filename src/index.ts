@@ -42,11 +42,20 @@ async function main(ORGANIZATION_ID: number) {
 		await connectOrganization(ORGANIZATION_ID);
 		console.log("Reconnected");
 	});
+
+	const { SearchId } = await searchLeads(1, [], {
+		DateActiveE: moment().add(30, "years").format("YYYY-MM-DDT00:00:00"),
+		DateActiveS: moment().subtract(3, "days").format("YYYY-MM-DDT23:59:59"),
+		MaxItems: 10000,
+		SearchTermIn: "clients",
+	});
+	console.log(SearchId);
 	await hubConnection.invoke(
 		"ListenLeadsGroup",
 		generateCRMString(ORGANIZATION_ID),
-		"638754660670622904",
-		undefined,
+		// "638754660670622904",
+		SearchId.toString(),
+		"",
 	);
 	hubConnection.on("OnLeadsGroupUpdate", async ({ jsonData }) => {
 		console.log("onLeadsGroupUpdate");

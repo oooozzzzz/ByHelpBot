@@ -284,11 +284,11 @@ export const getClientsFilterData = async (ActiveBranchId: number) => {
 
 export const searchLeads = async (
 	ActiveBranchId: number,
-	BranchIds: number[],
+	BranchIds?: number[],
 	query: SearchLeadsFilter = {
-		DateActiveE: moment().format("YYYY-MM-DDT00:00:00"),
-		DateActiveS: moment().subtract(3, "days").format("YYYY-MM-DDT23:59:59"),
-		MaxItems: 100,
+		DateActiveE: moment().add(30, "years").format("YYYY-MM-DDT00:00:00"),
+		DateActiveS: moment().subtract(10, "days").format("YYYY-MM-DDT23:59:59"),
+		MaxItems: 10000,
 		SearchTermIn: "clients",
 
 		// UserIds: [422],
