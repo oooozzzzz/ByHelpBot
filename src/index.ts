@@ -62,12 +62,12 @@ async function main(ORGANIZATION_ID: number) {
 		);
 		const lastMessage = chatMessages[0];
 		if (!lastMessage) return;
-		// await replyInSocialIntegration(lastMessage, ORGANIZATION_ID, AILeads);
+		await replyInSocialIntegration(lastMessage, ORGANIZATION_ID, AILeads);
 	});
 }
 bot.on("message:text", async (ctx: Context) => {
 	await AIHandler(ctx);
 });
 bot.catch(async (err) => console.log(err));
-// bot.start();
+bot.start();
 main(1);
