@@ -32,16 +32,28 @@ async function main(ORGANIZATION_ID: number) {
 	await createOrganization(ORGANIZATION_ID, aiUser.UserBranchIds, aiUser.Id);
 	await hubConnection.start();
 	hubConnection.onreconnected(async () => {
+		const leadsGroup = await hubConnection.invoke(
+			"ListenLeadsGroup",
+			generateCRMString(ORGANIZATION_ID),
+			"638754660670622904",
+			"",
+		);
+		console.log(leadsGroup);
 		await connectOrganization(ORGANIZATION_ID);
 		console.log("Reconnected");
 	});
-	await connectOrganization(ORGANIZATION_ID);
 	await hubConnection.invoke(
 		"ListenLeadsGroup",
 		generateCRMString(ORGANIZATION_ID),
-		"1",
-		"",
+		"638754660670622904",
+		undefined,
 	);
+	hubConnection.on("OnLeadsGroupUpdate", async ({ jsonData }) => {
+		console.log("onLeadsGroupUpdate");
+		const data = JSON.parse(jsonData);
+		console.log(data);
+	});
+	await connectOrganization(ORGANIZATION_ID);
 	hubConnection.on("OnClientHistoryUpdate", async (data) => {
 		const AILeads = await getAILeadIds(ORGANIZATION_ID);
 		const messages = JSON.parse(data.jsonData);
@@ -50,12 +62,12 @@ async function main(ORGANIZATION_ID: number) {
 		);
 		const lastMessage = chatMessages[0];
 		if (!lastMessage) return;
-		await replyInSocialIntegration(lastMessage, ORGANIZATION_ID, AILeads);
+		// await replyInSocialIntegration(lastMessage, ORGANIZATION_ID, AILeads);
 	});
 }
 bot.on("message:text", async (ctx: Context) => {
 	await AIHandler(ctx);
 });
 bot.catch(async (err) => console.log(err));
-bot.start();
+// bot.start();
 main(1);

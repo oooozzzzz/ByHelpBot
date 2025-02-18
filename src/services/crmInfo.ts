@@ -125,7 +125,6 @@ export const getEmployeesByService = async (
 			},
 		},
 	);
-	console.log(response.data);
 	const result: employeeByService[] = JSON.parse(response.data.JsonData);
 	return result.filter((employee) => employee.IsWorking);
 };

@@ -267,7 +267,6 @@ export const createClientRecord = tool(
 				Discount: 0,
 			};
 		});
-		console.log(allServices);
 
 		const { Duration } = allServices.reduce(
 			(acc, service) => {
