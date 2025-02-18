@@ -275,6 +275,7 @@ export const createClientRecord = tool(
 			},
 			{ Duration: 0 },
 		);
+		console.log(allServices);
 
 		const clientInfo = await getClientInfo(userId, branchId);
 
