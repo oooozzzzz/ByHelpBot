@@ -22,7 +22,14 @@ model Thread {
 }
 
 model Organization {
-  id        Int    @id
-  branchIds String
-  userId    Int
+  id               Int      @id
+  branchIds        String
+  userId           Int
+  clientsConnected Client[]
+}
+
+model Client {
+  id             Int           @id
+  Organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId Int?
 }
