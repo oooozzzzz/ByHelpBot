@@ -19,6 +19,7 @@ import {
 	serviceTip,
 } from "../types";
 import { getStringAfterCharacter } from "./serviceFunctions";
+import JSONbig from "json-bigint";
 
 export const getWorkingHours = async (
 	branchId: number,
@@ -305,7 +306,7 @@ export const searchLeads = async (
 			},
 		},
 	);
-	const result = JSON.parse(response.data.JsonData);
+	const result = JSONbig.parse(response.data.JsonData);
 	return result;
 };
 
