@@ -429,7 +429,6 @@ export const freeEmployees = tool(
 				};
 			});
 
-			console.log(allRecordsRaw);
 			const allRecords = allRecordsRaw.map((record) => {
 				const records = record.records.map((r) => {
 					return { start: r.TimeS, end: r.TimeE };

@@ -106,7 +106,10 @@ export function findAvailableTimes(
 	masters: Master[],
 	serviceDuration: number,
 	step: number = 15,
-	currentTime: Moment = moment().tz("Europe/Moscow"),
+	currentTime: Moment = moment()
+		.minute(Math.ceil(moment().minute() / 10) * 10)
+		.startOf("minute")
+		.tz("Europe/Moscow"),
 ): AvailableTimeSlot[] {
 	const availableTimes: AvailableTimeSlot[] = [];
 
