@@ -35,11 +35,7 @@ export const AIHandler = async (ctx: Context) => {
 	await ctx.reply(output);
 };
 
-export const replyInSocialIntegration = async (
-	lastMessage: ChatMessage,
-	activeBranch: number,
-	AILeads: number[],
-) => {
+export const replyInSocialIntegration = async (lastMessage: ChatMessage) => {
 	const clientId = lastMessage?.ClientId;
 
 	const branchId = lastMessage?.BranchId;

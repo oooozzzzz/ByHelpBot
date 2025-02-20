@@ -56,3 +56,29 @@ export const getOrganization = async (id: number) => {
 		console.log(error);
 	}
 };
+
+export const addConnectedUser = async (id: number, organizationId: number) => {
+	const organization = await prisma.organization.findUnique({
+		where: { id: organizationId },
+		select: { clientsConnected: true },
+	});
+	const clientsConnected = organization!.clientsConnected;
+	const clientsConnectedIds = clientsConnected.map((client) => client.id);
+	if (!clientsConnectedIds.includes(id)) {
+		await prisma.organization.update({
+			where: { id: organizationId },
+			data: { clientsConnected: { create: { id } } },
+		});
+		console.log(`New client with id ${id} added `);
+	} else return;
+};
+
+export const isInOrganization = async (id: number, organizationId: number) => {
+	const organization = await prisma.organization.findUnique({
+		where: { id: organizationId },
+		select: { clientsConnected: true },
+	});
+	const clientsConnected = organization!.clientsConnected;
+	const clientsConnectedIds = clientsConnected.map((client) => client.id);
+	return clientsConnectedIds.includes(id);
+};

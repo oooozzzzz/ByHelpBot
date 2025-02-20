@@ -395,3 +395,37 @@ export type AIUser = {
 	IsFakeEmail: boolean;
 	IsFakePhone: boolean;
 };
+
+export type ClientAction = {
+	Timestamp: string;
+	ActionId: string;
+	ActionUserId: number;
+	ObjectId: number;
+	Icon: string;
+	ActionUser: string;
+	ObjectType: string;
+	ObjectS: string;
+	ActionText: string;
+	IsImportantAction: boolean;
+	ActionItems: {
+		Icon: string;
+		ValueOld: string;
+		ValueNew: string;
+		Property: string;
+	}[];
+
+	Files: {
+		Id: number;
+		TimeCreated: string;
+		ClientId: number;
+		Description: string;
+		FileName: string;
+		FileSize: number;
+		Data: string;
+		Extension: string;
+		Thumbnail: string;
+		ClientMessageId: number;
+	}[];
+
+	ChatMessages: ChatMessage[];
+};

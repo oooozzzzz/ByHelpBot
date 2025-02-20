@@ -2,6 +2,7 @@ import moment, { Moment } from "moment-timezone";
 import { hubConnection } from "../signalR";
 import { getAIUser, getBasicLeads } from "./crmInfo";
 import { api } from "../bot";
+import { addConnectedUser } from "./db";
 
 export const getStringAfterCharacter = (
 	input: string,
@@ -269,6 +270,7 @@ export const connectClientsSocket = async (
 			generateCRMString(organizationId),
 			id,
 		);
+		await addConnectedUser(id, organizationId);
 		console.log(`Connected to client ${id}`);
 	});
 };

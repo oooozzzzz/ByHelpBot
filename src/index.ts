@@ -5,17 +5,19 @@ import { AIHandler, replyInSocialIntegration } from "./handlers/AIHandler";
 import moment from "moment";
 import { hubConnection } from "./signalR";
 import {
+	assignLeadsToUser,
 	getAIUser,
 	getBasicBranches,
 	getBasicLeads,
 	getBranches,
+	getClientActionHistory,
 	getClientInfo,
 	getClientsFilterData,
 	removeResponsibility,
 	searchLeads,
 	sendMessageToClient,
 } from "./services/crmInfo";
-import { Branch, ChatMessage } from "./types";
+import { Branch, ChatMessage, Lead, SearchLeadsFilter } from "./types";
 import {
 	connectAllClients,
 	connectClientsSocket,
@@ -23,7 +25,11 @@ import {
 	generateCRMString,
 	getAILeadIds,
 } from "./services/serviceFunctions";
-import { createOrganization, createThread } from "./services/db";
+import {
+	createOrganization,
+	createThread,
+	isInOrganization,
+} from "./services/db";
 
 async function main(ORGANIZATION_ID: number) {
 	moment.locale("ru");
@@ -44,25 +50,40 @@ async function main(ORGANIZATION_ID: number) {
 
 	const { SearchId } = await searchLeads(1, [], {
 		DateActiveE: moment().add(30, "years").format("YYYY-MM-DDT00:00:00"),
-		DateActiveS: moment().subtract(3, "days").format("YYYY-MM-DDT23:59:59"),
+		DateActiveS: moment("2025-01-26T23:59:59").format("YYYY-MM-DDT23:59:59"),
 		MaxItems: 10000,
 		SearchTermIn: "clients",
 	});
-	console.log(SearchId.toString());
 	await hubConnection.invoke(
 		"ListenLeadsGroup",
-		"Crm-000-001",
-		// generateCRMString(ORGANIZATION_ID),
+		// "Crm-000-001",
+		generateCRMString(ORGANIZATION_ID),
 		// "638754838440642591",
 		SearchId.toString(),
 		undefined,
 	);
-	// await connectOrganization(ORGANIZATION_ID);
+	await connectOrganization(ORGANIZATION_ID);
 	hubConnection.on("onLeadsGroupUpdate", async ({ jsonData }) => {
-		console.log("onLeadsGroupUpdate");
-		const data = JSON.parse(jsonData);
-		// console.log(data);
+		const data: { SearchId: number; Filter: SearchLeadsFilter; Items: Lead[] } =
+			JSON.parse(jsonData);
+		const lastLead = data.Items[0];
+		if (
+			lastLead.LastMessage &&
+			lastLead.Direction == "in" &&
+			!(await isInOrganization(lastLead.ClientId, ORGANIZATION_ID))
+		) {
+			console.log(lastLead);
+			const clientActionHistory = await getClientActionHistory(
+				lastLead.ClientId,
+			);
+			const lastMessage = clientActionHistory[0].ChatMessages[0];
+			await assignLeadsToUser(lastLead.BranchId, [lastLead.Id], aiUser.Id);
+			await replyInSocialIntegration(lastMessage);
+			await connectClientsSocket([lastLead.ClientId], ORGANIZATION_ID);
+		}
 	});
+
+	// TODO: добавить список подклченных клиентов в бд и проверять не подключен ли ИИ к определенному клиенту
 	hubConnection.on("OnClientHistoryUpdate", async (data) => {
 		const AILeads = await getAILeadIds(ORGANIZATION_ID);
 		const messages = JSON.parse(data.jsonData);
@@ -71,7 +92,7 @@ async function main(ORGANIZATION_ID: number) {
 		);
 		const lastMessage = chatMessages[0];
 		if (!lastMessage) return;
-		await replyInSocialIntegration(lastMessage, ORGANIZATION_ID, AILeads);
+		await replyInSocialIntegration(lastMessage);
 	});
 }
 bot.on("message:text", async (ctx: Context) => {

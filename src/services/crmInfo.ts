@@ -5,6 +5,7 @@ import {
 	AIUser,
 	Branch,
 	client,
+	ClientAction,
 	createRecordBody,
 	employee,
 	employeeByService,
@@ -418,4 +419,17 @@ export const searchCurrentLeads = async (
 	});
 	const currentLead = leads.Items.find((lead) => lead.ClientId === clientId);
 	return currentLead;
+};
+
+export const getClientActionHistory = async (
+	forClientId: number,
+	ActiveBranchId: number = 1,
+	dateS: string = moment().subtract(3, "days").format("YYYY-MM-DD"),
+	dateE: string = moment().add(1, "day").format("YYYY-MM-DD"),
+): Promise<ClientAction[]> => {
+	const response = await crm.get("/api/ActionsHistory/GetClientActionHistory", {
+		params: { forClientId, ActiveBranchId, dateS, dateE },
+	});
+	const result = JSON.parse(response.data.JsonData);
+	return result;
 };
