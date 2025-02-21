@@ -77,9 +77,9 @@ async function main(ORGANIZATION_ID: number) {
 				lastLead.ClientId,
 			);
 			const lastMessage = clientActionHistory[0].ChatMessages[0];
-			await assignLeadsToUser(lastLead.BranchId, [lastLead.Id], aiUser.Id);
-			await replyInSocialIntegration(lastMessage);
 			await connectClientsSocket([lastLead.ClientId], ORGANIZATION_ID);
+			await replyInSocialIntegration(lastMessage);
+			await assignLeadsToUser(lastLead.BranchId, [lastLead.Id], aiUser.Id);
 		}
 	});
 
