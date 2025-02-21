@@ -19,6 +19,7 @@ import {
 	freeEmployees,
 	getClientEmployees,
 	getAnyInfo,
+	masterSchedule,
 } from "./tools";
 import { getSystemPrompt } from "./systemPrompt";
 import { getThread } from "../services/db";
@@ -43,6 +44,7 @@ const tools: any[] = [
 	freeEmployees,
 	getClientEmployees,
 	getAnyInfo,
+	masterSchedule,
 ];
 const toolNode = new ToolNode(tools, { handleToolErrors: true });
 const model = new LLM().model;

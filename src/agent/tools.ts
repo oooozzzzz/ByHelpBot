@@ -372,14 +372,14 @@ export const serviceTimes = tool(
 			const result = adjustedIntervals.map((interval) => {
 				if (interval.start === interval.end)
 					return `${moment(interval.start).format("HH:mm")},`;
-				return `${moment(interval.start).format("HH:mm")} - ${moment(
+				return `С ${moment(interval.start).format("HH:mm")} до ${moment(
 					interval.end,
 				).format("HH:mm")},`;
 			});
 
 			console.log(result);
 			if (result.length === 0) return "Нет доступного времени";
-			return `Доступное время для записи: ${result.join("\n")}`;
+			return `Доступные интервалы для записи: ${result.join("\n")}`;
 		} catch (error) {
 			console.log(error);
 		}
@@ -392,6 +392,98 @@ export const serviceTimes = tool(
 			serviceId: z.number().describe("Service id"),
 			date: z.string().describe("Date in format YYYY-MM-DD"),
 			branchId: z.number().describe("Branch id"),
+		}),
+	},
+);
+
+export const masterSchedule = tool(
+	async ({
+		date,
+		branchId,
+		serviceId,
+		employeeId,
+	}: {
+		date: string;
+		branchId: number;
+		serviceId: number;
+		employeeId: number;
+	}) => {
+		console.log(
+			`Узнаю доступное время для записи на услугу... ${serviceId} и дату ${date}`,
+		);
+		try {
+			const employees = await getEmployeesByService(branchId, date, 1, [
+				serviceId,
+			]);
+			console.log(employees);
+			if (employees.length === 0) {
+				return "Нет мастеров, которые оказывают такую услугу";
+			}
+			const employeeIds = employees!
+				.map((employee) => employee.UserId)
+				.filter((id) => id === employeeId);
+			const allRecordsRaw = await asyncMap(employeeIds, async (id) => {
+				const schedule = await getEmployeesSchedule(branchId, date, 1, [id]);
+				const workingHours = {
+					start: schedule[0].WorkSchedules[0].TimeS,
+					end: schedule[0].WorkSchedules[0].TimeE,
+				};
+				return {
+					id,
+					records: await getEmployeeRecordsTip(id, branchId, date),
+					workingHours,
+				};
+			});
+
+			const allRecords = allRecordsRaw.map((record) => {
+				const records = record.records?.map((r) => {
+					return { start: r.TimeS, end: r.TimeE };
+				});
+				return {
+					id: record.id,
+					unavailableTimes: records,
+					workingHours: record.workingHours,
+				};
+			});
+
+			const serviceInfo = await getServiceInfo(serviceId, branchId);
+			let duration = serviceInfo.Duration;
+			if (duration === 0) {
+				duration = 30;
+			}
+
+			const intervals = findAvailableTimes(allRecords, duration);
+			const mergedIntervals = mergeIntervals(intervals);
+			const adjustedIntervals = adjustAvailableIntervals(
+				mergedIntervals,
+				duration,
+			);
+			const result = adjustedIntervals.map((interval) => {
+				if (interval.start === interval.end)
+					return `${moment(interval.start).format("HH:mm")},`;
+				return `С ${moment(interval.start).format("HH:mm")} до ${moment(
+					interval.end,
+				).format("HH:mm")},`;
+			});
+
+			console.log(result);
+			if (result.length === 0) return "Нет доступного времени";
+			return `Доступные интервалы для записи к мастеру с id ${employeeId}: ${result.join(
+				"\n",
+			)}`;
+		} catch (error) {
+			console.log(error);
+		}
+	},
+	{
+		name: "particularMasterSchedule",
+		description:
+			"Use this tool when asked about available time of a particular master. Use it only when a client told you the time when he wants to have a service and name of the master he wants to visit",
+		schema: z.object({
+			serviceId: z.number().describe("Service id"),
+			date: z.string().describe("Date in format YYYY-MM-DD"),
+			branchId: z.number().describe("Branch id"),
+			employeeId: z.number().describe("Employee id"),
 		}),
 	},
 );
@@ -472,6 +564,7 @@ export const freeEmployees = tool(
 				return master.id;
 			});
 			console.log(mastersIds);
+			if (mastersIds.length === 0) return "Нет доступных мастеров";
 			return `ID доступных мастеров на указанное время: 
 ${mastersIds.join(", ")}`;
 		} catch (error) {
@@ -479,7 +572,7 @@ ${mastersIds.join(", ")}`;
 		}
 	},
 	{
-		name: "freeEmployees",
+		name: "freeEmployeesOnParticularTime",
 		description:
 			"Use to find free masters when you know the date and time for a particular service. Use it before creating a record. Use it only when the client told you the time when he wants to have a service.",
 		schema: z.object({
