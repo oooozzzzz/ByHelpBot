@@ -66,6 +66,7 @@ async function main(ORGANIZATION_ID: number) {
 	hubConnection.on("onLeadsGroupUpdate", async ({ jsonData }) => {
 		const data: { SearchId: number; Filter: SearchLeadsFilter; Items: Lead[] } =
 			JSON.parse(jsonData);
+		if (data.Items.length === 0) return;
 		const lastLead = data.Items[0];
 		if (
 			lastLead.LastMessage &&
@@ -76,7 +77,7 @@ async function main(ORGANIZATION_ID: number) {
 			const clientActionHistory = await getClientActionHistory(
 				lastLead.ClientId,
 			);
-			const lastMessage = clientActionHistory[0].ChatMessages[0];
+			const lastMessage = clientActionHistory[0]?.ChatMessages[0];
 			await connectClientsSocket([lastLead.ClientId], ORGANIZATION_ID);
 			await replyInSocialIntegration(lastMessage);
 			await assignLeadsToUser(lastLead.BranchId, [lastLead.Id], aiUser.Id);

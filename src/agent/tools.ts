@@ -409,7 +409,7 @@ export const masterSchedule = tool(
 		employeeId: number;
 	}) => {
 		console.log(
-			`Узнаю доступное время для записи на услугу... ${serviceId} и дату ${date}`,
+			`Узнаю доступное время для записи на услугу... ${serviceId} и дату ${date} к мастеру ${employeeId}`,
 		);
 		try {
 			const employees = await getEmployeesByService(branchId, date, 1, [
