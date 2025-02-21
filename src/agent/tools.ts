@@ -379,7 +379,7 @@ export const serviceTimes = tool(
 
 			console.log(result);
 			if (result.length === 0) return "Нет доступного времени";
-			return result.join("\n");
+			return `Доступное время для записи: ${result.join("\n")}`;
 		} catch (error) {
 			console.log(error);
 		}
@@ -469,7 +469,7 @@ export const freeEmployees = tool(
 				requestetEndTime,
 			);
 			const mastersIds = availableMasters.map((master) => {
-				return `MasterId: ${master.id},`;
+				return master.id;
 			});
 			console.log(mastersIds);
 			return `ID доступных мастеров на указанное время: 

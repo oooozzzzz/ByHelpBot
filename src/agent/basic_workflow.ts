@@ -44,7 +44,7 @@ const tools: any[] = [
 	getClientEmployees,
 	getAnyInfo,
 ];
-const toolNode = new ToolNode(tools);
+const toolNode = new ToolNode(tools, { handleToolErrors: true });
 const model = new LLM().model;
 function shouldContinue(state: typeof StateAnnotation.State) {
 	const messages = state.messages;
