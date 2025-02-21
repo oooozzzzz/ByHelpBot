@@ -478,7 +478,7 @@ export const masterSchedule = tool(
 	{
 		name: "particularMasterSchedule",
 		description:
-			"Use this tool when asked about available time of a particular master. Use it only when a client told you the time when he wants to have a service and name of the master he wants to visit",
+			"Use this tool to find information about schedule of a particular master. Use it only when a client told you the time when he wants to have a service and name of the master he wants to visit",
 		schema: z.object({
 			serviceId: z.number().describe("Service id"),
 			date: z.string().describe("Date in format YYYY-MM-DD"),
