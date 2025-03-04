@@ -263,6 +263,13 @@ export function generateCRMString(num: number): string {
 	const paddedNum = trimmedNum.toString().padStart(3, "0");
 	return `Crm-000-${paddedNum}`;
 }
+export function generateEmailString(num: number): string {
+	// Обрезаем число до трех цифр
+	const trimmedNum = num % 1000;
+	// Дополняем нулями до трех цифр
+	const paddedNum = trimmedNum.toString().padStart(3, "0");
+	return `ai-000-${paddedNum}@byhelp.ru`;
+}
 
 export const connectClientsSocket = async (
 	clientsIds: number[],

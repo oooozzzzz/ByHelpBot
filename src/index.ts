@@ -6,6 +6,7 @@ import moment from "moment";
 import { hubConnection } from "./signalR";
 import {
 	assignLeadsToUser,
+	authByPassport,
 	getAIUser,
 	getBasicBranches,
 	getBasicLeads,
@@ -23,6 +24,7 @@ import {
 	connectClientsSocket,
 	connectOrganization,
 	generateCRMString,
+	generateEmailString,
 	getAILeadIds,
 } from "./services/serviceFunctions";
 import {
@@ -30,18 +32,32 @@ import {
 	createThread,
 	isInOrganization,
 } from "./services/db";
+import { setAccessToken } from "./axios/axios";
 
 async function main(ORGANIZATION_ID: number) {
 	moment.locale("ru");
+	console.log(ORGANIZATION_ID);
+	const email = generateEmailString(ORGANIZATION_ID);
+	const user = await authByPassport(email, process.env.CRM_PASSWORD!);
+	// console.log(user);
+	// console.log(AccessToken);
+	setAccessToken(user.AccessToken);
 
 	const aiUser = await getAIUser(ORGANIZATION_ID);
+	// console.log(aiUser);
 	await createOrganization(ORGANIZATION_ID, aiUser.UserBranchIds, aiUser.Id);
 	await hubConnection.start();
 	hubConnection.onreconnected(async () => {
+		const { SearchId } = await searchLeads(1, [], {
+			DateActiveE: moment().add(30, "years").format("YYYY-MM-DDT00:00:00"),
+			DateActiveS: moment("2025-01-26T23:59:59").format("YYYY-MM-DDT23:59:59"),
+			MaxItems: 10000,
+			SearchTermIn: "clients",
+		});
 		await hubConnection.invoke(
 			"ListenLeadsGroup",
 			generateCRMString(ORGANIZATION_ID),
-			"638754660670622904",
+			SearchId.toString(),
 			undefined,
 		);
 		await connectOrganization(ORGANIZATION_ID);

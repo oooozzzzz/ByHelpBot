@@ -27,7 +27,7 @@ export const getWorkingHours = async (
 	date: string,
 	ActiveBranchId: number,
 ): Promise<{ WorkTimeS: string; WorkTimeE: string }> => {
-	const response = await crm.get("/api/Branches/GetBranchWorkTimesOnDate", {
+	const response = await crm().get("/api/Branches/GetBranchWorkTimesOnDate", {
 		params: {
 			branchId,
 			date,
@@ -44,7 +44,7 @@ export const getWorkingHours = async (
 export const getServicesByBranch = async (
 	ActiveBranchId: number,
 ): Promise<service[]> => {
-	const response = await crm.get("/api/ClientServices/GetClientServices", {
+	const response = await crm().get("/api/ClientServices/GetClientServices", {
 		params: {
 			ActiveBranchId,
 		},
@@ -58,7 +58,7 @@ export const getRecordInfo = async (
 	recordId: number,
 ) => {
 	const record = 109275;
-	const response = await crm.get("/api/Records/GetRecordById", {
+	const response = await crm().get("/api/Records/GetRecordById", {
 		params: {
 			ActiveBranchId,
 			recordId,
@@ -72,7 +72,7 @@ export const getRecordInfo = async (
 export const getEmployees = async (
 	ActiveBranchId: number,
 ): Promise<employee[]> => {
-	const response = await crm.get("/api/Users/GetEmployeesList", {
+	const response = await crm().get("/api/Users/GetEmployeesList", {
 		params: {
 			ActiveBranchId,
 		},
@@ -86,7 +86,7 @@ export const getBranchInfo = async (
 	branchId: number,
 	ActiveBranchId: number,
 ) => {
-	const response = await crm.get("/api/Branches/GetBranch", {
+	const response = await crm().get("/api/Branches/GetBranch", {
 		params: {
 			branchId,
 			ActiveBranchId,
@@ -100,7 +100,7 @@ export const getClientRecords = async (
 	ActiveBranchId: number,
 	clientId: number,
 ) => {
-	const response = await crm.get("/api/Records/GetClientRecords", {
+	const response = await crm().get("/api/Records/GetClientRecords", {
 		params: {
 			ActiveBranchId,
 			clientId,
@@ -116,7 +116,7 @@ export const getEmployeesByService = async (
 	ActiveBranchId: number,
 	id: number[],
 ) => {
-	const response = await crm.post(
+	const response = await crm().post(
 		"/api/Records/GetEmployeesByServices",
 		[...id],
 		{
@@ -135,7 +135,7 @@ export const createRecord = async (
 	body: createRecordBody,
 	ActiveBranchId: number,
 ) => {
-	const response = await crm.post("/api/Records/UpdateRecord", body, {
+	const response = await crm().post("/api/Records/UpdateRecord", body, {
 		params: {
 			ActiveBranchId,
 		},
@@ -155,7 +155,7 @@ export const getClientInfo = async (
 	clientId: number,
 	ActiveBranchId: number,
 ): Promise<client> => {
-	const response = await crm.get("/api/Client/GetClientById", {
+	const response = await crm().get("/api/Client/GetClientById", {
 		params: {
 			clientId,
 			ActiveBranchId,
@@ -169,7 +169,7 @@ export const getServiceInfo = async (
 	serviceId: number,
 	ActiveBranchId: number,
 ): Promise<service> => {
-	const response = await crm.get("/api/ClientServices/GetClientServiceById", {
+	const response = await crm().get("/api/ClientServices/GetClientServiceById", {
 		params: {
 			serviceId,
 			ActiveBranchId,
@@ -187,7 +187,7 @@ export const getEmployeesSchedule = async (
 ): Promise<employeesScheduleResponse> => {
 	const dateS = moment(date).format("YYYY-MM-DD");
 	const dateE = moment(dateS).add(1, "days").format("YYYY-MM-DD");
-	const response = await crm.post(
+	const response = await crm().post(
 		"/api/WorkSchedule/GetEmployeesWorkSchedulesByUserIds",
 		employeeIds,
 		{
@@ -209,7 +209,7 @@ export const getEmployeeRecords = async (
 	dateS: string,
 	dateE: string,
 ): Promise<employeeRecordsResponse> => {
-	const response = await crm.get("/api/Records/GetEmployeeRecords", {
+	const response = await crm().get("/api/Records/GetEmployeeRecords", {
 		params: {
 			ActiveBranchId,
 			dateS,
@@ -226,7 +226,7 @@ export const getEmployeeRecordsTip = async (
 	ActiveBranchId: number,
 	date: string,
 ): Promise<serviceTip[]> => {
-	const response = await crm.get("/api/Records/GetEmployeeRecordsTip", {
+	const response = await crm().get("/api/Records/GetEmployeeRecordsTip", {
 		params: {
 			employeeId,
 			ActiveBranchId,
@@ -242,7 +242,7 @@ export const updateRecord = async (
 	recordId: number,
 	body: record,
 ) => {
-	const response = await crm.post("/api/Records/UpdateRecord", body, {
+	const response = await crm().post("/api/Records/UpdateRecord", body, {
 		params: {
 			ActiveBranchId,
 			recordId,
@@ -253,7 +253,7 @@ export const updateRecord = async (
 };
 
 export const getBranches = async (ActiveBranchId: number) => {
-	const response = await crm.get("/api/Branches/GetBranches", {
+	const response = await crm().get("/api/Branches/GetBranches", {
 		params: {
 			ActiveBranchId,
 			isActive: true,
@@ -275,7 +275,7 @@ export const getBasicBranches = async (branchId: number) => {
 };
 
 export const getClientsFilterData = async (ActiveBranchId: number) => {
-	const response = await crm.post("/api/Users/GetClientsFilterData", null, {
+	const response = await crm().post("/api/Users/GetClientsFilterData", null, {
 		params: {
 			ActiveBranchId,
 		},
@@ -296,7 +296,7 @@ export const searchLeads = async (
 		// UserIds: [422],
 	},
 ): Promise<SearchLeadsResponse> => {
-	const response = await crm.post(
+	const response = await crm().post(
 		"/api/Leads/SearchLeads",
 		{ ...query, BranchIds },
 		{
@@ -344,7 +344,7 @@ export const sendMessageToClient = async (
 	ActiveBranchId: number,
 	requestBody: SendMessageToClientBody,
 ) => {
-	const response = await crm.post(
+	const response = await crm().post(
 		"/api/SocialIntegrations/SendMessageToClient",
 		requestBody,
 		{
@@ -362,7 +362,7 @@ export const assignLeadsToUser = async (
 	leadsIds: number[],
 	forUserId: number,
 ) => {
-	const response = await crm.post("/api/Leads/AssignLeadsToUser", leadsIds, {
+	const response = await crm().post("/api/Leads/AssignLeadsToUser", leadsIds, {
 		params: {
 			forUserId,
 			ActiveBranchId,
@@ -386,7 +386,7 @@ export const getInfoForAI = async (
 	organizationId: number,
 	ActiveBranchId: number,
 ): Promise<AILearnInfo[]> => {
-	const response = await crm.get("/api/Ai/GetTrainingContent", {
+	const response = await crm().get("/api/Ai/GetTrainingContent", {
 		params: {
 			organizationId,
 			ActiveBranchId,
@@ -397,7 +397,7 @@ export const getInfoForAI = async (
 };
 
 export const getAIUser = async (ActiveBranchId: number): Promise<AIUser> => {
-	const response = await crm.get("/api/Ai/GetAiUser", {
+	const response = await crm().get("/api/Ai/GetAiUser", {
 		params: {
 			ActiveBranchId,
 		},
@@ -427,9 +427,27 @@ export const getClientActionHistory = async (
 	dateS: string = moment().subtract(3, "days").format("YYYY-MM-DD"),
 	dateE: string = moment().add(1, "day").format("YYYY-MM-DD"),
 ): Promise<ClientAction[]> => {
-	const response = await crm.get("/api/ActionsHistory/GetClientActionHistory", {
-		params: { forClientId, ActiveBranchId, dateS, dateE },
-	});
+	const response = await crm().get(
+		"/api/ActionsHistory/GetClientActionHistory",
+		{
+			params: { forClientId, ActiveBranchId, dateS, dateE },
+		},
+	);
+	const result = JSON.parse(response.data.JsonData);
+	return result;
+};
+
+export const authByPassport = async (Email: string, Password: string) => {
+	// console.log(Email, Password);
+	const response = await crm().post(
+		"/api/Authentication/AuthenticateByPassword",
+		{
+			Email,
+			Password,
+		},
+		{ params: { ipAddress: "0.0.0.0" } },
+	);
+	// console.log(response.data);
 	const result = JSON.parse(response.data.JsonData);
 	return result;
 };
