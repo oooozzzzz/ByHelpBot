@@ -15,7 +15,11 @@ import {
 } from "../services/crmInfo";
 import { createThread } from "../services/db";
 import { ChatMessage } from "../types";
-import { connectAllClients, sendToTg } from "../services/serviceFunctions";
+import {
+	connectAllClients,
+	getAILeadIds,
+	sendToTg,
+} from "../services/serviceFunctions";
 
 export const AIHandler = async (ctx: Context) => {
 	await createThread({
@@ -40,11 +44,17 @@ export const replyInSocialIntegration = async (lastMessage: ChatMessage) => {
 	const clientId = lastMessage?.ClientId;
 
 	const branchId = lastMessage?.BranchId;
+	// определяем текущий лид и его id
 	const lead = await searchCurrentLeads(branchId, branchId, clientId);
-	// const lead = allLeads!.find((l) => l.clientId === clientId);
 	const leadId = lead!.Id;
-	// if (!AILeads.includes(leadId)) return;
+	if (process.env.NODE_ENV === "production") {
+		// ищем лиды, у которых ответственным стоит ИИ
+		const AILeads = await getAILeadIds(parseInt(process.env.ORGANIZATION_ID!));
+		// если текущий лид не от ИИ, то выходим
+		if (!AILeads.includes(leadId)) return;
+	}
 	await createThread({ clientId, branchId, leadId });
+	// функция по генерации тела запроса на отправку сообщения в СРМ
 	const body = (message: string) => ({
 		Message: message,
 		Destination: {
@@ -57,6 +67,7 @@ export const replyInSocialIntegration = async (lastMessage: ChatMessage) => {
 	});
 
 	const text = lastMessage.Message;
+	if (text[0] === "/") return;
 	if (text === "!!") {
 		console.log(text);
 		sendToTg(text);
@@ -69,10 +80,12 @@ export const replyInSocialIntegration = async (lastMessage: ChatMessage) => {
 	console.log(`Bot: ${output}`);
 	sendToTg(`Bot: ${output}`);
 	if (output === "***") {
-		await sendMessageToClient(
-			branchId,
-			body("Информация на период теста: диалог переведен на оператора"),
-		);
+		if (process.env.NODE_ENV === "dev") {
+			await sendMessageToClient(
+				branchId,
+				body("Информация на период теста: диалог переведен на оператора"),
+			);
+		}
 		if (process.env.NODE_ENV === "production") {
 			await removeResponsibility(branchId, leadId);
 		}
