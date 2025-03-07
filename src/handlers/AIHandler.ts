@@ -60,12 +60,12 @@ export const replyInSocialIntegration = async (lastMessage: ChatMessage) => {
 	if (text === "!!") {
 		console.log(text);
 		sendToTg(text);
-		await agent.clearMessageHistory(clientId.toString() + ".0");
+		await agent.clearMessageHistory(clientId.toString());
 		return sendMessageToClient(branchId, body("История чата очищена"));
 	}
 	console.log(`User ${clientId}: ${text}`);
 	sendToTg(`User ${clientId}: ${text}`);
-	const output = await agent.ask(text, clientId);
+	const output = await agent.ask(text, clientId.toString());
 	console.log(`Bot: ${output}`);
 	sendToTg(`Bot: ${output}`);
 	if (output === "***") {

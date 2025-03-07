@@ -165,6 +165,7 @@ export class Graph {
 		);
 		const sql = `DELETE FROM checkpoints WHERE thread_id = '${thread_id}'`;
 		try {
+			console.log(sql);
 			await execute(db, sql);
 		} catch (err) {
 			console.log(err);
