@@ -113,12 +113,12 @@ async function main(ORGANIZATION_ID: number) {
 		await replyInSocialIntegration(lastMessage);
 	});
 }
-bot.on("message:text", async (ctx: Context) => {
-	await AIHandler(ctx);
-});
 bot.command("notifications", async (ctx: Context) => {
 	addUserToGetNotifications(ctx.from!.id);
 	await ctx.reply("Вы подписались на уведомления");
+});
+bot.on("message:text", async (ctx: Context) => {
+	await AIHandler(ctx);
 });
 bot.catch(async (err) => console.log(err));
 if (process.env.START_BOT === "true") bot.start();
