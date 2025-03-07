@@ -316,5 +316,14 @@ export const connectOrganization = async (organizationId: number) => {
 };
 
 export const sendToTg = async (message: string) => {
-	await api.sendMessage(762569950, message);
+	const users = getUserToGetNotifications();
+	users.forEach(async (userId) => {
+		await api.sendMessage(userId, message);
+	});
 };
+
+const usersToGetNotifications: number[] = [];
+export const addUserToGetNotifications = (userId: number) => {
+	usersToGetNotifications.push(userId);
+};
+export const getUserToGetNotifications = () => usersToGetNotifications;

@@ -20,6 +20,7 @@ import {
 } from "./services/crmInfo";
 import { Branch, ChatMessage, Lead, SearchLeadsFilter } from "./types";
 import {
+	addUserToGetNotifications,
 	connectAllClients,
 	connectClientsSocket,
 	connectOrganization,
@@ -115,6 +116,10 @@ async function main(ORGANIZATION_ID: number) {
 bot.on("message:text", async (ctx: Context) => {
 	await AIHandler(ctx);
 });
+bot.command("notifications", async (ctx: Context) => {
+	addUserToGetNotifications(ctx.from!.id);
+	await ctx.reply("Вы подписались на уведомления");
+});
 bot.catch(async (err) => console.log(err));
-// bot.start();
+if (process.env.START_BOT === "true") bot.start();
 main(parseInt(process.env.ORGANIZATION_ID!));
