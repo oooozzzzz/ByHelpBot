@@ -447,7 +447,6 @@ export const authByPassport = async (Email: string, Password: string) => {
 		},
 		{ params: { ipAddress: "0.0.0.0" } },
 	);
-	// console.log(response.data);
 	const result = JSON.parse(response.data.JsonData);
 	return result;
 };

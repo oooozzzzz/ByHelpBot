@@ -20,14 +20,14 @@ export const crm = () => {
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
 			},
-			baseURL: "https://dev.byhelp.ru/",
+			baseURL: `https://${process.env.PREFIX}.byhelp.ru/`,
 		});
 	} else {
 		return axios.create({
 			headers: {
 				Authorization: `Bearer ${process.env.CRM_TOKEN}`,
 			},
-			baseURL: "https://dev.byhelp.ru/",
+			baseURL: `https://${process.env.PREFIX}.byhelp.ru/`,
 		});
 	}
 };

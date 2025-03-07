@@ -116,5 +116,5 @@ bot.on("message:text", async (ctx: Context) => {
 	await AIHandler(ctx);
 });
 bot.catch(async (err) => console.log(err));
-bot.start();
-main(1);
+// bot.start();
+main(parseInt(process.env.ORGANIZATION_ID!));

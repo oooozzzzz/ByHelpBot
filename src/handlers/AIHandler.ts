@@ -1,6 +1,7 @@
 import { Context } from "grammy";
 import { agent } from "../bot";
 import { crm } from "../axios/axios";
+import "dotenv/config";
 import {
 	getBasicLeads,
 	getBranchInfo,
@@ -72,7 +73,9 @@ export const replyInSocialIntegration = async (lastMessage: ChatMessage) => {
 			branchId,
 			body("Информация на период теста: диалог переведен на оператора"),
 		);
-		// await removeResponsibility(branchId, leadId);
+		if (process.env.NODE_ENV === "production") {
+			await removeResponsibility(branchId, leadId);
+		}
 		return;
 	}
 	await sendMessageToClient(branchId, body(output));
