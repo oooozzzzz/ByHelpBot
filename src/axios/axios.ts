@@ -13,6 +13,7 @@ export const setAccessToken = (token: string) => {
 // 	},
 // 	baseURL: "https://dev.byhelp.ru/",
 // });
+const prefix = process.env.PREFIX ? process.env.PREFIX : "";
 
 export const crm = () => {
 	if (accessToken) {
@@ -20,14 +21,14 @@ export const crm = () => {
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
 			},
-			baseURL: `https://${process.env.PREFIX}.byhelp.ru/`,
+			baseURL: `https://${prefix}byhelp.ru/`,
 		});
 	} else {
 		return axios.create({
 			headers: {
 				Authorization: `Bearer ${process.env.CRM_TOKEN}`,
 			},
-			baseURL: `https://${process.env.PREFIX}.byhelp.ru/`,
+			baseURL: `https://${prefix}byhelp.ru/`,
 		});
 	}
 };
