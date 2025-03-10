@@ -447,6 +447,20 @@ export const authByPassport = async (Email: string, Password: string) => {
 		},
 		{ params: { ipAddress: "0.0.0.0" } },
 	);
+	if (!response.data.Success) {
+		throw new Error(response.data.ErrorMessage);
+	}
+
+	const result = JSON.parse(response.data.JsonData);
+	return result;
+};
+
+export const getAiOrganizations = async (ActiveBranchId: number) => {
+	const response = await crm().get("/api/Organization/GetAi", {
+		params: {
+			ActiveBranchId,
+		},
+	});
 	const result = JSON.parse(response.data.JsonData);
 	return result;
 };

@@ -292,8 +292,9 @@ export const connectAllClients = async (
 	organizationId: number,
 ) => {
 	const leads = await getBasicLeads(ActiveBranchId, branchIds);
-	// const AILeads = leads.filter((lead) => lead.userId === 422);
-	const AILeads = leads;
+	const aiUser = await getAIUser(organizationId);
+	const AILeads = leads.filter((lead) => lead.userId === aiUser.Id);
+	// const AILeads = leads;
 	const clientIds = AILeads.map((lead) => lead.clientId);
 	await connectClientsSocket(clientIds, organizationId);
 };

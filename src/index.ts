@@ -7,6 +7,7 @@ import { hubConnection } from "./signalR";
 import {
 	assignLeadsToUser,
 	authByPassport,
+	getAiOrganizations,
 	getAIUser,
 	getBasicBranches,
 	getBasicLeads,
@@ -37,6 +38,8 @@ import { setAccessToken } from "./axios/axios";
 
 async function main(ORGANIZATION_ID: number) {
 	moment.locale("ru");
+	const organizations = await getAiOrganizations(1);
+	console.log(organizations);
 	console.log(ORGANIZATION_ID);
 	const email = generateEmailString(ORGANIZATION_ID);
 	const user = await authByPassport(email, process.env.CRM_PASSWORD!);
