@@ -1,3 +1,5 @@
+// базовый граф работы ИИ. Паттерн называется ReAct Agent. Подробнее о нем можно почитать на сайте langchain
+
 import {
 	Annotation,
 	Messages,
@@ -33,6 +35,7 @@ const StateAnnotation = Annotation.Root({
 	}),
 });
 
+// формируем список инструментов, чтобы разом прокинуть их в модель
 const tools: any[] = [
 	getUserMastersInfo,
 	getRecordsInfo,
@@ -58,6 +61,7 @@ function shouldContinue(state: typeof StateAnnotation.State) {
 }
 
 async function callModel(state: typeof StateAnnotation.State, config: any) {
+	// вторым аргументом берем конфигурацию. Это нужно, чтобы определять thread_id и по нему искать информацию в БД о клиенте и филиале, в котором он находится
 	const thread = config.configurable.thread_id;
 	const clientInfo = await getThread(parseInt(thread));
 	const modelWithTools = model.bindTools(tools);

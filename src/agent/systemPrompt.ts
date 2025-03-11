@@ -1,18 +1,21 @@
 import moment from "moment";
 import { getBranchInfo, getServicesByBranch } from "../services/crmInfo";
 
+// ядро логики ИИ. Тут описан системный промпт, который определяет ролевую модель ИИ и его поведение.
+// промпт формируется динамически, чтобы изначально закладывать некоторую информацию для ИИ, а не искать ее с помощью инструментов.
+
+// ункция принимает ID филиала, ID пользователя, ID активного филиала (почти ни на что не влияет, нужен судя по всему для фронта)
 export const getSystemPrompt = async (
 	branchId: number,
 	userId: number,
 	activeBranchId: number,
 ) => {
 	moment.locale("ru");
-	// const bracnId = 1;
-	// const userId = 2;
+	//сразу получаем список доступных услуг, чтобы ИИ знал, что искать с помощью своих инструментов и не соглашался записать на несуществующую услугу
 	const services = (await getServicesByBranch(branchId))
 		.map((s) => `Название: ${s.Name}`)
 		.join(", ");
-	// console.log(services);
+	// получаем информацию о филиале и подставляем ее в системный промпт
 	const branchInfo = await getBranchInfo(branchId, activeBranchId);
 	const systemPrompt = `
 Сегодня ${new Date().toISOString()}, ${moment().format("dddd")}.

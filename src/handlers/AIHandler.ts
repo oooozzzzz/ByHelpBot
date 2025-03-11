@@ -31,7 +31,7 @@ export const AIHandler = async (ctx: Context) => {
 	const text = ctx.message!.text;
 	console.log(`${ctx.from!.first_name}: ${text}`);
 	if (text == "!!") {
-		await agent.clearMessageHistory(66003 + ".0");
+		await agent.clearMessageHistory("66003");
 		return await ctx.reply("История чата очищена");
 	}
 	const thread = 66003;
@@ -53,8 +53,9 @@ export const replyInSocialIntegration = async (lastMessage: ChatMessage) => {
 		// если текущий лид не от ИИ, то выходим
 		if (!AILeads.includes(leadId)) return;
 	}
+	// создаем thread в БД, чтобы из ИИ цеплять нужную нам инфу о лиде: id филиала, id клиента и тд
 	await createThread({ clientId, branchId, leadId });
-	// функция по генерации тела запроса на отправку сообщения в СРМ
+	// функция для генерации тела запроса на отправку сообщения в СРМ
 	const body = (message: string) => ({
 		Message: message,
 		Destination: {
@@ -67,29 +68,37 @@ export const replyInSocialIntegration = async (lastMessage: ChatMessage) => {
 	});
 
 	const text = lastMessage.Message;
+	// обработка команд в телеграме. ИИ не должен на них отвечать
 	if (text[0] === "/") return;
 	if (text === "!!") {
 		console.log(text);
+		// дублируем в телеграм бот
 		sendToTg(text);
+		// очищает историю чата для ИИ
 		await agent.clearMessageHistory(clientId.toString());
 		return sendMessageToClient(branchId, body("История чата очищена"));
 	}
+	// логирование диалога
 	console.log(`User ${clientId}: ${text}`);
 	sendToTg(`User ${clientId}: ${text}`);
 	const output = await agent.ask(text, clientId.toString());
 	console.log(`Bot: ${output}`);
 	sendToTg(`Bot: ${output}`);
+	// если ИИ не знает, что делать, он отправляет три звезды (***), чтобы система сняла с него ответственность за лида
 	if (output === "***") {
+		// если запущен тестовый инстанс ИИ, он говорит о том, что диалог переведен на оператора
 		if (process.env.NODE_ENV === "dev") {
 			await sendMessageToClient(
 				branchId,
 				body("Информация на период теста: диалог переведен на оператора"),
 			);
 		}
+		// снятие с себя ответственности. Клиент не видит это тпереход
 		if (process.env.NODE_ENV === "production") {
 			await removeResponsibility(branchId, leadId);
 		}
 		return;
 	}
+	// если все условия выполнились, то отправляем сообщение в СРМ
 	await sendMessageToClient(branchId, body(output));
 };

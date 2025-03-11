@@ -2,19 +2,13 @@ import axios, { Axios } from "axios";
 import "dotenv/config";
 
 let accessToken = "";
+// функция, котоарая устанавливает токен после первого подключения к СРМ. Это нужно, потому что для каждой организации создается свой пользователь со своим токеном
 export const setAccessToken = (token: string) => {
 	accessToken = token;
 };
-// export const crm = new (axios.create as any)({
-// 	headers: {
-// 		Authorization: accessToken
-// 			? `Bearer ${accessToken}`
-// 			: `Bearer ${process.env.CRM_TOKEN}`,
-// 	},
-// 	baseURL: "https://dev.byhelp.ru/",
-// });
+// определяем префикс для подключения к СРМ
 const prefix = process.env.PREFIX ? process.env.PREFIX : "";
-
+// функция, которая возвращает экземпляр axios с подставленным токеном и корректным baseUrl
 export const crm = () => {
 	if (accessToken) {
 		return axios.create({

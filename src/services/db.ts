@@ -8,6 +8,7 @@ export const createThread = async (client: {
 	activeBranchId?: number;
 	leadId?: number;
 }) => {
+	// функция создает thread, для того, чтобы ИИ мог взять необходимую информацию и передать ее в функцию systemPrompt
 	try {
 		await prisma.thread.create({ data: client });
 	} catch (error) {
@@ -19,6 +20,7 @@ export const createThread = async (client: {
 };
 
 export const getThread = async (clientId: number) => {
+	// функция возвращает thread по ID клиента
 	try {
 		return await prisma.thread.findUnique({ where: { clientId } });
 	} catch (error) {
@@ -31,6 +33,7 @@ export const createOrganization = async (
 	branchIds: number[],
 	userId: number,
 ) => {
+	// создаем организацию, в которой будет список всех филиалов
 	const branchIdsString = JSON.stringify(branchIds);
 	try {
 		await prisma.organization.create({
@@ -58,6 +61,7 @@ export const getOrganization = async (id: number) => {
 };
 
 export const addConnectedUser = async (id: number, organizationId: number) => {
+	// мы храним всех подключенных пользователей в БД, чтобы при переподключении восстановить с ними соединение по веб сокет
 	const organization = await prisma.organization.findUnique({
 		where: { id: organizationId },
 		select: { clientsConnected: true },
@@ -74,6 +78,7 @@ export const addConnectedUser = async (id: number, organizationId: number) => {
 };
 
 export const isInOrganization = async (id: number, organizationId: number) => {
+	// сервисная ыункция, которая проверяет, добавлен ли клиент в организацию
 	const organization = await prisma.organization.findUnique({
 		where: { id: organizationId },
 		select: { clientsConnected: true },

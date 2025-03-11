@@ -31,6 +31,10 @@ import {
 import { start } from "repl";
 import { getThread } from "../services/db";
 
+// файл со всеми инструментами для ИИ
+// описание инструментов можно почитать в поле description, а также посмотреть по логам
+// в каждом инструменте ИИ берет информацию из СРМ и возвращает ее в удобном для восприятия чтау ГПТ виде
+
 export const getServicesInfo = tool(
 	async ({ branchId }: { branchId: number }) => {
 		console.log("Получаю информацию об услугах...");
@@ -244,6 +248,7 @@ export const createClientRecord = tool(
 		},
 		options,
 	) => {
+		// инструмент для создания записи в СРМ
 		console.log("Создаю запись...");
 		console.log(userId, branchId, employeeId, servicesIds, time);
 		const thread = options.configurable?.thread_id;
@@ -321,6 +326,7 @@ export const serviceTimes = tool(
 		date: string;
 		branchId: number;
 	}) => {
+		// узнаем доступное время для записи без учета конкретного мастера, а берем сразу всех
 		console.log(
 			`Узнаю доступное время для записи на услугу... ${serviceId} и дату ${date}`,
 		);
@@ -408,10 +414,12 @@ export const masterSchedule = tool(
 		serviceId: number;
 		employeeId: number;
 	}) => {
+		// определяем время работы мастера с учетом его расписания
 		console.log(
 			`Узнаю доступное время для записи на услугу... ${serviceId} и дату ${date} к мастеру ${employeeId}`,
 		);
 		try {
+			// алгоритм такой же, как и в инструменте freeEmployees (расположен ниже)
 			const employees = await getEmployeesByService(branchId, date, 1, [
 				serviceId,
 			]);
@@ -451,13 +459,19 @@ export const masterSchedule = tool(
 			if (duration === 0) {
 				duration = 30;
 			}
-
+			// находим интервалы (логику под капотом смотреть в соответствующих функциях)
 			const intervals = findAvailableTimes(allRecords, duration);
+			// объединяем интервалы, чтобы все выглядело, как 15-20, а не 15,16,17,18,19,20
+			// иными словами, преобразуем в читаемый вид
 			const mergedIntervals = mergeIntervals(intervals);
+			// уточняем интервалы, исходя из продолжительности услуги, чтобы заложить в интервалы время на собственно оказание услуги.
+			// пример: рабочие часы мастера с 10 до 22, услуга длится час. по логике, последнее доступное для этой услуги время это 21, так как в 22
+			// мастер уже закончит работу. Именно такую логику реализует данная функция
 			const adjustedIntervals = adjustAvailableIntervals(
 				mergedIntervals,
 				duration,
 			);
+			// преобразуем результат в строки, чтобы ИИ мог их удобно воспринять
 			const result = adjustedIntervals.map((interval) => {
 				if (interval.start === interval.end)
 					return `${moment(interval.start).format("HH:mm")},`;
@@ -500,14 +514,19 @@ export const freeEmployees = tool(
 		branchId: number;
 		serviceId: number;
 	}) => {
+		// алгоритм по определению доступных мастеров для записи
+		// анализирует свободных мастеров в на указанную дату (находит через API СРМ) и возвращает список с ID мастеров
 		try {
 			console.log(
 				`Узнаю доступных мастеров на время ${time}, дату ${date} и услугу с ID ${serviceId}`,
 			);
+			// получаем мастеров, которые оказывают услугу в заданную дату
 			const employees = await getEmployeesByService(branchId, date, 1, [
 				serviceId,
 			]);
+			// получаем их ID
 			const employeeIds = employees!.map((employee) => employee.UserId);
+			// преобразуем данные в удобный вид
 			const allRecordsRaw = await asyncMap(employeeIds, async (id) => {
 				const schedule = await getEmployeesSchedule(branchId, date, 1, [id]);
 				const workingHours = {
@@ -531,8 +550,9 @@ export const freeEmployees = tool(
 					workingHours: record.workingHours,
 				};
 			});
-
+			// получаем данные об услуге
 			const serviceInfo = await getServiceInfo(serviceId, branchId);
+			// нас интересует продолжительность
 			const duration = serviceInfo.Duration;
 
 			const timeStr = time;
@@ -584,6 +604,7 @@ ${mastersIds.join(", ")}`;
 	},
 );
 
+// пока не используется
 export const editRecord = tool(
 	async ({
 		userId,
@@ -634,16 +655,7 @@ export const getAnyInfo = tool(
 		// const themes = AIInfo.map((i) => i.Type);
 		console.log(question);
 		const model = new LLM().model;
-		// 		const prompt1 = PromptTemplate.fromTemplate(`
-		// Тебе даны несколько тем: {themes}
-		// Твоя задача определить на какую тему задан вопрос.
-		// Вопрос: {question}
-		// Твой ответ должен содеражть лишь одно слово из списка тем.
-		// Твой ответ:
-		// 		`);
-		// 		const chain1 = prompt1.pipe(model).pipe(new StringOutputParser());
-		// 		const theme = await chain1.invoke({ themes: themes.join(", "), question });
-		// 		console.log(theme);
+		// в СРМ сделано несколько полей по типу информации. ИИ это очень неудобно воспринимать, поэтому мы все поля объединяем в единую строку, чтобы скормить ее чату ГПТ
 		const actualInfo = AIInfo.map((i) => i.Content).join("\n");
 		const prompt2 = PromptTemplate.fromTemplate(`
 Ответь на вопрос максимально информативно. Не добавляй информацию, которой нет в данных, и не делай предположений. Если данных для ответа нет, ответь "Нет информации".
