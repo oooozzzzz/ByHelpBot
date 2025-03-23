@@ -4,6 +4,7 @@ import { Context } from "grammy";
 import { AIHandler, replyInSocialIntegration } from "./handlers/AIHandler";
 import moment from "moment";
 import { hubConnection } from "./signalR";
+import cron from "node-cron";
 import {
 	assignLeadsToUser,
 	authByPassport,
@@ -35,10 +36,38 @@ import {
 	isInOrganization,
 } from "./services/db";
 import { setAccessToken } from "./axios/axios";
+let previousSearchId: number | undefined = undefined;
+const listenLeadsConnect = async (organizationId: number) => {
+	const { SearchId } = await searchLeads(1, [], {
+		DateActiveE: moment().add(3, "days").format("YYYY-MM-DDT00:00:00"),
+		DateActiveS: moment().subtract(7, "days").format("YYYY-MM-DDT23:59:59"),
+		MaxItems: 200,
+		SearchTermIn: "clients",
+	});
+	// подключаемся к методу ListenLeadsGroup.
+	await hubConnection.invoke(
+		"ListenLeadsGroup",
+		// генерируется строка по ID организации. логика такая же, как и при формировании строки в функции generateEmailString
+		generateCRMString(organizationId),
+		// важно перевести SearchId в строку.
+		// ВАЖНОЕ УТОЧНЕНИЕ: SearchId это BigInt, поэтому под капотом он парсится с помощью специальной библиотеки json-bigint
+		SearchId.toString(),
+		previousSearchId,
+	);
+	previousSearchId = SearchId;
+	console.log("ListenLeadsGroup connected");
+};
 // точка входа в систему
 async function main(ORGANIZATION_ID: number) {
 	// устанавливаем язык для moment, чтобы дни недели отображались на русском языке
 	moment.locale("ru");
+	cron
+		.schedule(
+			"0 0 2 * * *",
+			async () => await listenLeadsConnect(ORGANIZATION_ID),
+			{ timezone: "Europe/Moscow" },
+		)
+		.start();
 	// получаем через API клиента список организаций, у которых включен модуль ИИ
 	const organizations = await getAiOrganizations(1);
 	console.log(organizations);
@@ -60,39 +89,12 @@ async function main(ORGANIZATION_ID: number) {
 	hubConnection.onreconnected(async () => {
 		// для подключения к методу ListenLeadsGroup нам нужен SearchId поиска по лидам.
 		// В данном случае устанавливается максимально широкий период времени, чтобы не переписывать SearchId каждый раз
-		const { SearchId } = await searchLeads(1, [], {
-			DateActiveE: moment().add(30, "years").format("YYYY-MM-DDT00:00:00"),
-			DateActiveS: moment("2025-01-26T23:59:59").format("YYYY-MM-DDT23:59:59"),
-			MaxItems: 10000,
-			SearchTermIn: "clients",
-		});
-		// подключаемся к методу ListenLeadsGroup.
-		await hubConnection.invoke(
-			"ListenLeadsGroup",
-			// генерируется строка по ID организации. логика такая же, как и при формировании строки в функции generateEmailString
-			generateCRMString(ORGANIZATION_ID),
-			// важно перевести SearchId в строку.
-			// ВАЖНОЕ УТОЧНЕНИЕ: SearchId это BigInt, поэтому под капотом он парсится с помощью специальной библиотеки json-bigint
-			SearchId.toString(),
-			undefined,
-		);
+		await listenLeadsConnect(ORGANIZATION_ID);
 		await connectOrganization(ORGANIZATION_ID);
 		console.log("Reconnected");
 	});
 	// та же логика подключения к методу ListenLeadsGroup
-	const { SearchId } = await searchLeads(1, [], {
-		DateActiveE: moment().add(30, "years").format("YYYY-MM-DDT00:00:00"),
-		DateActiveS: moment("2025-01-26T23:59:59").format("YYYY-MM-DDT23:59:59"),
-		MaxItems: 10000,
-		SearchTermIn: "clients",
-	});
-	await hubConnection.invoke(
-		"ListenLeadsGroup",
-		// "Crm-000-001",
-		generateCRMString(ORGANIZATION_ID),
-		SearchId.toString(),
-		undefined,
-	);
+	await listenLeadsConnect(ORGANIZATION_ID);
 	// устанавливаем подключение по веб сокет к организации. нужен только ID организации
 	await connectOrganization(ORGANIZATION_ID);
 	hubConnection.on("onLeadsGroupUpdate", async ({ jsonData }) => {
@@ -101,28 +103,42 @@ async function main(ORGANIZATION_ID: number) {
 			JSON.parse(jsonData);
 		// если нет лидов, то выходим
 		if (data.Items.length === 0) return;
-		const lastLead = data.Items[0];
-		// функционал по обработке лидов, которых нет в БД и к которым еще не подключен ИИ
-		if (
-			// проверяем, чтобы у события было сообщение (потому что может быть и смена статуса или тега)
-			lastLead.LastMessage &&
-			// обязательно, чтобы сообщение было входящим, чтобы не реагировать на исходящие сообщения
-			lastLead.Direction == "in" &&
-			// проверяем, что лида нет в БД
-			!(await isInOrganization(lastLead.ClientId, ORGANIZATION_ID))
-		) {
-			console.log(lastLead);
-			const clientActionHistory = await getClientActionHistory(
-				lastLead.ClientId,
-			);
-			// находим и парсим последнее сообщение лида
-			const lastMessage = clientActionHistory[0]?.ChatMessages[0];
-			// устанавливаем соединение с лидом по веб сокету
-			await connectClientsSocket([lastLead.ClientId], ORGANIZATION_ID);
-			// отвечаем через ИИ
-			await replyInSocialIntegration(lastMessage);
-			// закрепляем пользователя ответственным за ИИ
-			await assignLeadsToUser(lastLead.BranchId, [lastLead.Id], aiUser.Id);
+		try {
+			const lastLead = data.Items[0];
+			const leads = data.Items;
+			for (const lead of leads) {
+				if (
+					lead.UserId == aiUser.Id &&
+					!(await isInOrganization(lead.ClientId, ORGANIZATION_ID))
+				) {
+					await connectClientsSocket([lead.ClientId], ORGANIZATION_ID);
+				}
+			}
+			// функционал по обработке лидов, которых нет в БД и к которым еще не подключен ИИ
+			if (
+				// проверяем, чтобы у события было сообщение (потому что может быть и смена статуса или тега)
+				lastLead.LastMessage &&
+				// обязательно, чтобы сообщение было входящим, чтобы не реагировать на исходящие сообщения
+				lastLead.Direction == "in" &&
+				// проверяем, чтобы лид не был ни за кем закреплен
+				lastLead.UserId == null &&
+				// проверяем, что лида нет в БД
+				!(await isInOrganization(lastLead.ClientId, ORGANIZATION_ID))
+			) {
+				const clientActionHistory = await getClientActionHistory(
+					lastLead.ClientId,
+				);
+				// находим и парсим последнее сообщение лида
+				const lastMessage = clientActionHistory[0]?.ChatMessages[0];
+				// устанавливаем соединение с лидом по веб сокету
+				await connectClientsSocket([lastLead.ClientId], ORGANIZATION_ID);
+				// отвечаем через ИИ
+				await replyInSocialIntegration(lastMessage);
+				// закрепляем пользователя ответственным за ИИ
+				await assignLeadsToUser(lastLead.BranchId, [lastLead.Id], aiUser.Id);
+			}
+		} catch (error) {
+			console.log(error);
 		}
 	});
 
