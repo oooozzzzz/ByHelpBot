@@ -44,7 +44,7 @@ const listenLeadsConnect = async (organizationId: number) => {
 	const { SearchId } = await searchLeads(1, [], {
 		DateActiveE: moment().add(3, "days").format("YYYY-MM-DDT00:00:00"),
 		DateActiveS: moment().subtract(7, "days").format("YYYY-MM-DDT23:59:59"),
-		MaxItems: 200,
+		MaxItems: 100,
 		SearchTermIn: "clients",
 	});
 	// подключаемся к методу ListenLeadsGroup.
@@ -92,8 +92,8 @@ async function main(ORGANIZATION_ID: number) {
 	hubConnection.onreconnected(async () => {
 		// для подключения к методу ListenLeadsGroup нам нужен SearchId поиска по лидам.
 		// В данном случае устанавливается максимально широкий период времени, чтобы не переписывать SearchId каждый раз
-		await listenLeadsConnect(ORGANIZATION_ID);
 		await connectOrganization(ORGANIZATION_ID);
+		await listenLeadsConnect(ORGANIZATION_ID);
 		console.log("Reconnected");
 	});
 	// та же логика подключения к методу ListenLeadsGroup
