@@ -3,6 +3,7 @@ import { hubConnection } from "../signalR";
 import { getAIUser, getBasicLeads } from "./crmInfo";
 import { api } from "../bot";
 import { addConnectedUser } from "./db";
+import { addConnectedRN, getConnectedRN } from "..";
 
 export const getStringAfterCharacter = (
 	input: string,
@@ -276,12 +277,15 @@ export const connectClientsSocket = async (
 	organizationId: number,
 ) => {
 	await asyncMap(clientsIds, async (id) => {
+		const connectedUsers = getConnectedRN();
+		if (connectedUsers.includes(id)) return;
 		await hubConnection.invoke(
 			"ListenClient",
 			generateCRMString(organizationId),
 			id,
 		);
 		await addConnectedUser(id, organizationId);
+		addConnectedRN(id);
 		console.log(`Connected to client ${id}`);
 	});
 };

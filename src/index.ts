@@ -37,6 +37,9 @@ import {
 } from "./services/db";
 import { setAccessToken } from "./axios/axios";
 let previousSearchId: number | undefined = undefined;
+const connectedRN: number[] = [];
+export const addConnectedRN = (id: number) => connectedRN.push(id);
+export const getConnectedRN = () => connectedRN;
 const listenLeadsConnect = async (organizationId: number) => {
 	const { SearchId } = await searchLeads(1, [], {
 		DateActiveE: moment().add(3, "days").format("YYYY-MM-DDT00:00:00"),
@@ -108,8 +111,9 @@ async function main(ORGANIZATION_ID: number) {
 			const leads = data.Items;
 			for (const lead of leads) {
 				if (
-					lead.UserId == aiUser.Id &&
-					!(await isInOrganization(lead.ClientId, ORGANIZATION_ID))
+					lead.UserId == aiUser.Id
+					// &&
+					// !(await isInOrganization(lead.ClientId, ORGANIZATION_ID))
 				) {
 					await connectClientsSocket([lead.ClientId], ORGANIZATION_ID);
 				}
