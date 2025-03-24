@@ -182,7 +182,7 @@ export const getDateMastersInfo = tool(
 	{
 		name: "getDateMastersInfo",
 		description:
-			"Use to get information about available masters on the date. Use only when you know the date and ids of the services",
+			"Use to get information about available masters on the date. Use only when you know the date and ids of the services.",
 		schema: z.object({
 			branchId: z.number().describe("Branch id"),
 			date: z.string().describe("Date in format YYYY-MM-DD"),
@@ -267,7 +267,7 @@ export const createClientRecord = tool(
 				Category: service.Category,
 				PriceS: service.PriceS,
 				PriceE: service.PriceE,
-				Duration: service.Duration,
+				Duration: service.Duration == 0 ? 60 : service.Duration,
 				Paid: 0,
 				Discount: 0,
 			};
@@ -492,7 +492,7 @@ export const masterSchedule = tool(
 	{
 		name: "particularMasterSchedule",
 		description:
-			"Use this tool to find information about schedule of a particular master. Use it only when a client told you the time when he wants to have a service and name of the master he wants to visit",
+			"Use this tool to find information about schedule of a particular master. Use it only when a client told you the time when he wants to have a service and name of the master he wants to visit. Используй этот инструмент, когда клиент спросит расписание конкретного мастера в конкретную дату.",
 		schema: z.object({
 			serviceId: z.number().describe("Service id"),
 			date: z.string().describe("Date in format YYYY-MM-DD"),
@@ -553,7 +553,7 @@ export const freeEmployees = tool(
 			// получаем данные об услуге
 			const serviceInfo = await getServiceInfo(serviceId, branchId);
 			// нас интересует продолжительность
-			const duration = serviceInfo.Duration;
+			const duration = serviceInfo.Duration == 0 ? 60 : serviceInfo.Duration;
 
 			const timeStr = time;
 
