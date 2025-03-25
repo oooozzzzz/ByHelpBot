@@ -40,6 +40,8 @@ let previousSearchId: number | undefined = undefined;
 const connectedRN: number[] = [];
 export const addConnectedRN = (id: number) => connectedRN.push(id);
 export const getConnectedRN = () => connectedRN;
+export const clearConnectedUsers = () =>
+	connectedRN.splice(0, connectedRN.length);
 const listenLeadsConnect = async (organizationId: number) => {
 	const { SearchId } = await searchLeads(1, [], {
 		DateActiveE: moment().add(3, "days").format("YYYY-MM-DDT00:00:00"),
@@ -90,6 +92,8 @@ async function main(ORGANIZATION_ID: number) {
 	await hubConnection.start();
 	// вешаем событие на переподключение
 	hubConnection.onreconnected(async () => {
+		// очищаем список подключенных пользователей
+		clearConnectedUsers();
 		// для подключения к методу ListenLeadsGroup нам нужен SearchId поиска по лидам.
 		// В данном случае устанавливается максимально широкий период времени, чтобы не переписывать SearchId каждый раз
 		await connectOrganization(ORGANIZATION_ID);
