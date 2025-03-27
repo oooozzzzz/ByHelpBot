@@ -26,6 +26,7 @@ import {
 	connectAllClients,
 	connectClientsSocket,
 	connectOrganization,
+	disconnectUsers,
 	generateCRMString,
 	generateEmailString,
 	getAILeadIds,
@@ -36,6 +37,7 @@ import {
 	isInOrganization,
 } from "./services/db";
 import { setAccessToken } from "./axios/axios";
+import { disconnect } from "process";
 let previousSearchId: number | undefined = undefined;
 const connectedRN: number[] = [];
 export const addConnectedRN = (id: number) => connectedRN.push(id);
@@ -69,14 +71,20 @@ async function main(ORGANIZATION_ID: number) {
 	cron
 		.schedule(
 			"0 0 2 * * *",
-			async () => await listenLeadsConnect(ORGANIZATION_ID),
+			async () => {
+				clearConnectedUsers();
+				disconnectUsers();
+				await listenLeadsConnect(ORGANIZATION_ID);
+				// для подключения к методу ListenLeadsGroup нам нужен SearchId поиска по лидам.
+				// В данном случае устанавливается максимально широкий период времени, чтобы не переписывать SearchId каждый раз
+				await connectOrganization(ORGANIZATION_ID);
+			},
 			{ timezone: "Europe/Moscow" },
 		)
 		.start();
 	// получаем через API клиента список организаций, у которых включен модуль ИИ
 	const organizations = await getAiOrganizations(1);
 	console.log(organizations);
-	console.log(ORGANIZATION_ID);
 	// в системе byHelp аутентификация ИИ происходи по почте, которая формирует определенным образом, описанным в функции generateEmailString
 	const email = generateEmailString(ORGANIZATION_ID);
 	// пароль для всех пользователей фиксированный, поэтому получаем его из переменной окружения
@@ -114,11 +122,7 @@ async function main(ORGANIZATION_ID: number) {
 			const lastLead = data.Items[0];
 			const leads = data.Items;
 			for (const lead of leads) {
-				if (
-					lead.UserId == aiUser.Id
-					// &&
-					// !(await isInOrganization(lead.ClientId, ORGANIZATION_ID))
-				) {
+				if (lead.UserId == aiUser.Id) {
 					await connectClientsSocket([lead.ClientId], ORGANIZATION_ID);
 				}
 			}
@@ -137,13 +141,16 @@ async function main(ORGANIZATION_ID: number) {
 					lastLead.ClientId,
 				);
 				// находим и парсим последнее сообщение лида
-				const lastMessage = clientActionHistory[0]?.ChatMessages[0];
+				const lastMessage =
+					clientActionHistory[clientActionHistory.length - 1].ChatMessages[0];
+				// последовательность важна. сначала назначаем ИИ ответственным за конкретного лида, чтобы
+				// в функции replyInSocialIntegration() пройти проверку на то, что лид закреплен за ИИ
+				// закрепляем пользователя ответственным за ИИ
+				await assignLeadsToUser(lastLead.BranchId, [lastLead.Id], aiUser.Id);
 				// устанавливаем соединение с лидом по веб сокету
 				await connectClientsSocket([lastLead.ClientId], ORGANIZATION_ID);
 				// отвечаем через ИИ
 				await replyInSocialIntegration(lastMessage);
-				// закрепляем пользователя ответственным за ИИ
-				await assignLeadsToUser(lastLead.BranchId, [lastLead.Id], aiUser.Id);
 			}
 		} catch (error) {
 			console.log(error);

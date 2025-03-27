@@ -73,7 +73,9 @@ export const replyInSocialIntegration = async (lastMessage: ChatMessage) => {
 	if (text === "!!") {
 		console.log(text);
 		// дублируем в телеграм бот
-		sendToTg(text);
+		try {
+			sendToTg(text);
+		} catch (error) {}
 		// очищает историю чата для ИИ
 		await agent.clearMessageHistory(clientId.toString());
 		return sendMessageToClient(branchId, body("История чата очищена"));
@@ -83,7 +85,9 @@ export const replyInSocialIntegration = async (lastMessage: ChatMessage) => {
 	sendToTg(`User ${clientId}: ${text}`);
 	const output = await agent.ask(text, clientId.toString());
 	console.log(`Bot: ${output}`);
-	sendToTg(`Bot: ${output}`);
+	try {
+		sendToTg(`Bot: ${output}`);
+	} catch (error) {}
 	// если ИИ не знает, что делать, он отправляет три звезды (***), чтобы система сняла с него ответственность за лида
 	if (output === "***") {
 		// если запущен тестовый инстанс ИИ, он говорит о том, что диалог переведен на оператора

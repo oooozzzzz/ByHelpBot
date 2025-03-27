@@ -272,6 +272,18 @@ export function generateEmailString(num: number): string {
 	return `ai-000-${paddedNum}@byhelp.ru`;
 }
 
+export const disconnectUsers = () => {
+	hubConnection.off("ListenClient");
+};
+
+export function removeElement<T>(array: T[], element: T): T[] {
+	const index = array.indexOf(element);
+	if (index !== -1) {
+		array.splice(index, 1);
+	}
+	return array;
+}
+
 export const connectClientsSocket = async (
 	clientsIds: number[],
 	organizationId: number,
