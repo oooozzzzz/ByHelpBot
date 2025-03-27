@@ -94,7 +94,7 @@ export const getBranchInfo = async (
 			ActiveBranchId,
 		},
 	});
-	const result = JSON.parse(response.data.JsonData);
+	const result: Branch = JSON.parse(response.data.JsonData);
 	return result;
 };
 

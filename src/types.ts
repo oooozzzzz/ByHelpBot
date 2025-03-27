@@ -197,7 +197,7 @@ export type serviceTip = {
 };
 
 export type Branch = {
-	Id: 1;
+	Id: number;
 	TimeCreated: string;
 	CreateUserId: number;
 	LegalEntityId: number;
