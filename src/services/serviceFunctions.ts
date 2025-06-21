@@ -308,7 +308,7 @@ export const connectAllClients = async (
 	organizationId: number,
 ) => {
 	const leads = await getBasicLeads(ActiveBranchId, branchIds);
-	const aiUser = await getAIUser(organizationId);
+	const aiUser = (await getAIUser(organizationId))[0];
 	const AILeads = leads.filter((lead) => lead.userId === aiUser.Id);
 	// const AILeads = leads;
 	const clientIds = AILeads.map((lead) => lead.clientId);
@@ -321,14 +321,14 @@ export const getAILeadIds = async (
 	// branchIds: number[],
 	// userId: number,
 ) => {
-	const aiUser = await getAIUser(organizationId);
+	const aiUser = (await getAIUser(organizationId))[0];
 	const leads = await getBasicLeads(ActiveBranchId, aiUser.UserBranchIds);
 	const AILeads = leads.filter((lead) => lead.userId === aiUser.Id);
 	return AILeads.map((lead) => lead.leadId);
 };
 
 export const connectOrganization = async (organizationId: number) => {
-	const aiUser = await getAIUser(organizationId);
+	const aiUser = (await getAIUser(organizationId))[0];
 	await connectAllClients(1, aiUser.UserBranchIds, organizationId);
 };
 

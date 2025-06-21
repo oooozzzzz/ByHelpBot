@@ -40,6 +40,7 @@ export const createOrganization = async (
 			data: { id, branchIds: branchIdsString, userId },
 		});
 	} catch (error) {
+		console.log(error)
 		await prisma.organization.update({
 			where: { id },
 			data: { branchIds: branchIdsString },
@@ -78,7 +79,7 @@ export const addConnectedUser = async (id: number, organizationId: number) => {
 };
 
 export const isInOrganization = async (id: number, organizationId: number) => {
-	// сервисная ыункция, которая проверяет, добавлен ли клиент в организацию
+	// сервисная функция, которая проверяет, добавлен ли клиент в организацию
 	const organization = await prisma.organization.findUnique({
 		where: { id: organizationId },
 		select: { clientsConnected: true },

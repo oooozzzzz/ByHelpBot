@@ -413,7 +413,7 @@ export const getInfoForAI = async (
 	return result;
 };
 
-export const getAIUser = async (ActiveBranchId: number): Promise<AIUser> => {
+export const getAIUser = async (ActiveBranchId: number): Promise<AIUser[]> => {
 	const response = await crm().get("/api/Ai/GetAiUser", {
 		params: {
 			ActiveBranchId,

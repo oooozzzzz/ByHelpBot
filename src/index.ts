@@ -93,7 +93,8 @@ async function main(ORGANIZATION_ID: number) {
 	// в поле AccessToken хранится токен, который используется для аутентификации в системе byHelp
 	setAccessToken(user.AccessToken);
 	// получаем ИИ пользователя, чтобы в дальнейшем подключить организацию и добавить ее в БД
-	const aiUser = await getAIUser(ORGANIZATION_ID);
+	const aiUser = (await getAIUser(ORGANIZATION_ID))[0];
+	console.log(aiUser)
 	// создаем организацию в БД (если ее нет)
 	await createOrganization(ORGANIZATION_ID, aiUser.UserBranchIds, aiUser.Id);
 	// начинаем подключение по веб соккету
