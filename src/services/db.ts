@@ -40,7 +40,7 @@ export const createOrganization = async (
 			data: { id, branchIds: branchIdsString, userId },
 		});
 	} catch (error) {
-		console.log(error)
+		// console.log(error)
 		await prisma.organization.update({
 			where: { id },
 			data: { branchIds: branchIdsString },
