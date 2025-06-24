@@ -38,7 +38,7 @@ import {
 } from "./services/db";
 import { setAccessToken } from "./axios/axios";
 import { disconnect } from "process";
-import { initializeDb } from "./agent/dbConfig";
+import { closeDb, initializeDb } from "./agent/dbConfig";
 let previousSearchId: number | undefined = undefined;
 const connectedRN: number[] = [];
 export const addConnectedRN = (id: number) => connectedRN.push(id);
@@ -171,6 +171,23 @@ async function main(ORGANIZATION_ID: number) {
 		// отвечаем через ИИ
 		await replyInSocialIntegration(lastMessage);
 	});
+
+	process.on('SIGINT', async () => {
+        console.log('\nПолучен сигнал SIGINT. Завершение работы...');
+        await closeDb();
+        process.exit(0);
+    });
+    process.on('SIGTERM', async () => {
+        console.log('\nПолучен сигнал SIGTERM. Завершение работы...');
+        await closeDb();
+        process.exit(0);
+    });
+    // Можно также добавить обработчик для неперехваченных исключений
+    process.on('uncaughtException', async (err) => {
+        console.error('Неперехваченное исключение:', err);
+        await closeDb();
+        process.exit(1);
+    });
 }
 // команды ТГ боту для управления
 bot.command("notifications", async (ctx: Context) => {
