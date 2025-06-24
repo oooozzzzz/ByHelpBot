@@ -6,6 +6,7 @@ import { SqliteSaver } from "@langchain/langgraph-checkpoint-sqlite";
 import { HumanMessage } from "@langchain/core/messages";
 import * as fs from "fs";
 import sqlite3, { verbose } from "sqlite3";
+import { runAsync, getDbInstance } from "./dbConfig";
 
 export const execute = async (db, sql, params = []) => {
 	if (params && params.length > 0) {
@@ -159,18 +160,37 @@ export class Graph {
 		return finalState.messages[finalState.messages.length - 1].content;
 	}
 	async clearMessageHistory(thread_id) {
-		const db = new sqlite3.Database(
-			"./checkpointer/checkpoints.db",
-			sqlite3.OPEN_READWRITE,
-		);
-		const sql = `DELETE FROM checkpoints WHERE thread_id = '${thread_id}'`;
-		try {
-			console.log(sql);
-			await execute(db, sql);
-		} catch (err) {
-			console.log(err);
-		} finally {
-			db.close();
-		}
+	// 	const db = new sqlite3.Database(
+	// 		"./checkpointer/checkpoints.db",
+	// 		sqlite3.OPEN_READWRITE,
+	// 	);
+	// 	const sql = `DELETE FROM checkpoints WHERE thread_id = '${thread_id}'`;
+	// 	try {
+	// 		console.log(sql);
+	// 		await execute(db, sql);
+	// 	} catch (err) {
+	// 		console.log(err);
+	// 	} finally {
+	// 		db.close();
+	// 	}
+
+	// Валидация входных данных
+    if (typeof thread_id !== 'string' || thread_id.trim() === '') {
+        throw new Error("Некорректный thread_id: должен быть непустой строкой.");
+    }
+    // Используем параметризованный запрос
+    const sql = `DELETE FROM checkpoints WHERE thread_id = ?`; // Важно: используем "?" плейсхолдер
+    try {
+        console.log(`Попытка удалить историю для thread_id: ${thread_id}`);
+        // Передаем thread_id как отдельный параметр
+        const result = await runAsync(sql, [thread_id]);
+        console.log(`Удалено ${result.changes} записей для thread_id: ${thread_id}`);
+        // Здесь не нужно закрывать соединение, оно остается открытым для других операций
+    } catch (err) {
+        console.error("Ошибка при очистке истории сообщений:", err);
+        // Перебрасываем ошибку, чтобы вызывающий код мог ее обработать
+        throw new Error(`Не удалось очистить историю сообщений для thread_id ${thread_id}: ${err.message}`);
+    }
+    // Блок finally с db.close() больше не нужен здесь
 	}
 }
