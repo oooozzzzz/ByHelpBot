@@ -38,6 +38,7 @@ import {
 } from "./services/db";
 import { setAccessToken } from "./axios/axios";
 import { disconnect } from "process";
+import { initializeDb } from "./agent/dbConfig";
 let previousSearchId: number | undefined = undefined;
 const connectedRN: number[] = [];
 export const addConnectedRN = (id: number) => connectedRN.push(id);
@@ -66,6 +67,7 @@ const listenLeadsConnect = async (organizationId: number) => {
 };
 // точка входа в систему
 async function main(ORGANIZATION_ID: number) {
+	await initializeDb()
 	// устанавливаем язык для moment, чтобы дни недели отображались на русском языке
 	moment.locale("ru");
 	cron
