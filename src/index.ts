@@ -67,6 +67,7 @@ const listenLeadsConnect = async (organizationId: number) => {
 };
 // точка входа в систему
 async function main(ORGANIZATION_ID: number) {
+	// инициализируем базу данных, чтобы подключение было стабильным
 	await initializeDb()
 	// устанавливаем язык для moment, чтобы дни недели отображались на русском языке
 	moment.locale("ru");

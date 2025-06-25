@@ -385,14 +385,14 @@ export const serviceTimes = tool(
 
 			console.log(result);
 			if (result.length === 0) return "Нет доступного времени";
-			return `Доступные интервалы для записи: ${result.join("\n")}`;
+			return `Доступное время для записи: ${result.join("\n")}.`;
 		} catch (error) {
 			console.log(error);
 		}
 	},
 	{
 		description:
-			"Use to get information about доступном времени для записи на конкретную услугу. Можно записаться на любое время, которое выведет этот инструмент. Use only when you know the date and you are sure that the service is available on the date.",
+			"Use to get information about доступном времени для записи на конкретную услугу. Можно записаться на любое время, которое выведет этот инструмент (в том числе интервалы, например 13:30-18:00 значит, что можно записаться на любое время между 13:30 и 18:00). Use only when you know the date and you are sure that the service is available on the date.",
 		name: "getServiceTime",
 		schema: z.object({
 			serviceId: z.number().describe("Service id"),
