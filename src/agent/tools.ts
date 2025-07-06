@@ -31,6 +31,9 @@ import {
 } from "../services/serviceFunctions";
 import { start } from "repl";
 import { getThread } from "../services/db";
+// import { schedule } from "node-cron";
+import { scheduleJob } from "node-schedule";
+import { agent } from "../bot";
 
 // файл со всеми инструментами для ИИ
 // описание инструментов можно почитать в поле description, а также посмотреть по логам
@@ -300,6 +303,10 @@ export const createClientRecord = tool(
       Comment: "Запись создана при помощи ИИ-сотрудника",
       IsPaid: false,
     };
+    const job = scheduleJob(TimeE, async () => {
+      await agent.clearMessageHistory(thread);
+      job.cancel();
+    });
     const result = await createRecord(requset, branchId);
     return result;
   },
