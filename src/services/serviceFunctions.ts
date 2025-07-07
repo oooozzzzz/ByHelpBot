@@ -1,6 +1,6 @@
 import moment, { Moment } from "moment-timezone";
 import { hubConnection } from "../signalR";
-import { getAIUser, getBasicLeads } from "./crmInfo";
+import { getAiOrganizations, getAIUser, getBasicLeads } from "./crmInfo";
 import { api } from "../bot";
 import { addConnectedUser } from "./db";
 import { addConnectedRN, getConnectedRN } from "..";
@@ -344,3 +344,47 @@ export const addUserToGetNotifications = (userId: number) => {
   usersToGetNotifications.push(userId);
 };
 export const getUserToGetNotifications = () => usersToGetNotifications;
+
+export const controlModule = async (
+  organizationId: number,
+  turnOnModule: Function,
+  turnOffModule: Function,
+  setModule: Function,
+  moduleState: boolean
+) => {
+  try {
+    const organizations: {
+      OrganizationId: number;
+      UserId: number;
+      Email: string;
+    }[] = await getAiOrganizations(organizationId);
+    const ids = organizations.map(
+      (organization: {
+        OrganizationId: number;
+        UserId: number;
+        Email: string;
+      }) => organization.OrganizationId
+    );
+    const desiredState = ids.includes(organizationId);
+    console.log(desiredState);
+    if (desiredState === moduleState) {
+      return; // Ничего не делаем
+    }
+
+    if (desiredState) {
+      await turnOnModule();
+      console.log("Модуль включен");
+      setModule(true);
+    } else if (!desiredState) {
+      await turnOffModule();
+      console.log("Модуль выключен");
+      setModule(false);
+    } else {
+      console.log("Неизвестный статус от API:", desiredState);
+    }
+  } catch (error: any) {
+    console.error("Ошибка при запросе API:", error.message);
+    // Можно выключить модуль при ошибке (зависит от логики)
+    await turnOffModule();
+  }
+};
