@@ -213,7 +213,7 @@ async function main(ORGANIZATION_ID: number) {
       setModuleState,
       moduleState
     );
-  }, 1000 * 5);
+  }, 1000 * 60);
 }
 // команды ТГ боту для управления
 bot.command("notifications", async (ctx: Context) => {
