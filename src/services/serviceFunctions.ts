@@ -366,7 +366,6 @@ export const controlModule = async (
       }) => organization.OrganizationId
     );
     const desiredState = ids.includes(organizationId);
-    console.log(desiredState);
     if (desiredState === moduleState) {
       return; // Ничего не делаем
     }

@@ -129,6 +129,7 @@ async function main(ORGANIZATION_ID: number) {
       JSON.parse(jsonData);
     // если нет лидов, то выходим
     if (data.Items.length === 0) return;
+    if (!moduleState) return;
     try {
       const lastLead = data.Items[0];
       const leads = data.Items;
@@ -201,17 +202,18 @@ async function main(ORGANIZATION_ID: number) {
     await controlModule(
       ORGANIZATION_ID,
       async () => {
+        await hubConnection.start();
         await listenLeadsConnect(ORGANIZATION_ID);
         await connectOrganization(ORGANIZATION_ID);
       },
       async () => {
         clearConnectedUsers();
-        disconnectUsers();
+        await hubConnection.stop();
       },
       setModuleState,
       moduleState
     );
-  }, 1000 * 60);
+  }, 1000 * 5);
 }
 // команды ТГ боту для управления
 bot.command("notifications", async (ctx: Context) => {
