@@ -321,7 +321,9 @@ export const createClientRecord = tool(
       branchId: z.number().describe("Branch id"),
       employeeId: z.number().describe("Employee id"),
       servicesIds: z.array(z.number()).describe("Service id"),
-      time: z.string().describe("Time in format YYYY-MM-DDTHH:mm:ss"),
+      time: z
+        .string()
+        .describe("Time in format YYYY-MM-DDTHH:mm:ss without timezones"),
     }),
   }
 );
