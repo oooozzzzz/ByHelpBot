@@ -256,7 +256,9 @@ export const createClientRecord = tool(
     console.log("Создаю запись...");
     console.log(userId, branchId, employeeId, servicesIds, time);
     const thread = options.configurable?.thread_id;
-    const TimeS = moment(time).format("YYYY-MM-DDTHH:mm:ss");
+    const TimeS = moment
+      .tz(time, "Europe/Moscow")
+      .format("YYYY-MM-DDTHH:mm:ss");
 
     const servicesInfo = servicesIds.map(
       async (id) => await getServiceInfo(id, branchId)
