@@ -256,8 +256,10 @@ export const createClientRecord = tool(
     console.log("Создаю запись...");
     console.log(userId, branchId, employeeId, servicesIds, time);
     const thread = options.configurable?.thread_id;
+    const timeS = moment.tz(time, "Europe/Moscow");
+
     const TimeS = moment
-      .tz(time, "Europe/Moscow")
+      .tz(timeS.format("YYYY-MM-DDTHH:mm:ss"), "Europe/Moscow")
       .format("YYYY-MM-DDTHH:mm:ss");
 
     const servicesInfo = servicesIds.map(
