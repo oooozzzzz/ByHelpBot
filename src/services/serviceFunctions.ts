@@ -1,4 +1,4 @@
-import moment, { Moment } from "moment-timezone";
+import moment, { Moment } from "moment";
 import { hubConnection } from "../signalR";
 import { getAiOrganizations, getAIUser, getBasicLeads } from "./crmInfo";
 import { api } from "../bot";
@@ -113,14 +113,16 @@ export function findAvailableTimes(
     .tz("Europe/Moscow")
 ): AvailableTimeSlot[] {
   const availableTimes: AvailableTimeSlot[] = [];
-  console.log(currentTime.format("YYYY-MM-DDTHH:mm:ss"));
-
+  const actualCurrentTime = moment.tz(
+    currentTime.format("YYYY-MM-DDTHH:mm:ss"),
+    "Europe/Moscow"
+  );
   masters.forEach((master) => {
     const masterStart = moment(master.workingHours.start);
     const masterEnd = moment(master.workingHours.end);
 
     // Начинаем проверку с максимального из: начала рабочего дня или текущего времени
-    const startTime = moment.max(masterStart, currentTime);
+    const startTime = moment.max(masterStart, actualCurrentTime);
     let currentTimePointer = startTime.clone();
 
     while (currentTimePointer.isBefore(masterEnd)) {

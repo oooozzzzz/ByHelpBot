@@ -19,8 +19,6 @@ export const getSystemPrompt = async (
   const branchInfo = await getBranchInfo(branchId, activeBranchId);
 
   const tz = branchInfo.Timezone;
-  console.log(tz);
-  console.log(moment().tz(tz).format());
 
   const systemPrompt = `
 Сегодня ${moment().tz(tz).format()}, ${moment().format(
