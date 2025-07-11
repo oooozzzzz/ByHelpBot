@@ -619,7 +619,7 @@ export const freeEmployees = tool(
       console.log(mastersIds);
       if (mastersIds.length === 0) return "Нет доступных мастеров";
       return `ID доступных мастеров на указанное время: 
-${mastersIds.join(", ")}`;
+${mastersIds.join(", ")}. Важно сопоставить эти ID с именами мастеров.`;
     } catch (error) {
       console.log(error);
     }
