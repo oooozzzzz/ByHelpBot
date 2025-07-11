@@ -535,7 +535,7 @@ export const masterSchedule = tool(
   }
 );
 
-export const freeEmployees = tool(
+export const freeEmployees: any = tool(
   async ({
     date,
     time,
@@ -617,9 +617,17 @@ export const freeEmployees = tool(
         return master.id;
       });
       console.log(mastersIds);
+      const mastersNames = employees.filter((employee) =>
+        mastersIds.includes(employee.UserId)
+      );
       if (mastersIds.length === 0) return "Нет доступных мастеров";
-      return `ID доступных мастеров на указанное время: 
-${mastersIds.join(", ")}. Важно сопоставить эти ID с именами мастеров.`;
+      return `Доступные мастера на указанное время: 
+${mastersNames
+  .map(
+    (master) =>
+      `Имя мастера: ${master.NameFirst} ${master.NameLast}, ID мастера: ${master.UserId}`
+  )
+  .join("\n")}`;
     } catch (error) {
       console.log(error);
     }
@@ -628,12 +636,14 @@ ${mastersIds.join(", ")}. Важно сопоставить эти ID с име�
     name: "freeEmployeesOnParticularTime",
     description:
       "Use to find free masters when you know the date and time for a particular service. Use it before creating a record. Use it only when the client told you the time when he wants to have a service.",
-    schema: z.object({
-      date: z.string().describe("Date in format YYYY-MM-DD"),
-      time: z.string().describe("Time of a service in format HH:mm"),
-      branchId: z.number().describe("Branch id"),
-      serviceId: z.number().describe("Service id"),
-    }),
+    schema: z.lazy(() =>
+      z.object({
+        date: z.string().describe("Date in format YYYY-MM-DD"),
+        time: z.string().describe("Time of a service in format HH:mm"),
+        branchId: z.number().describe("Branch id"),
+        serviceId: z.number().describe("Service id"),
+      })
+    ),
   }
 );
 
