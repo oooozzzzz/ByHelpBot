@@ -553,6 +553,14 @@ export const freeEmployees: any = tool(
       console.log(
         `Узнаю доступных мастеров на время ${time}, дату ${date} и услугу с ID ${serviceId}`
       );
+
+      const tz = (await getBranchInfo(branchId, branchId)).Timezone;
+
+      const currentTime = moment.tz(tz);
+      const wishedTime = moment.tz(date + "T" + time, tz);
+      if (wishedTime.isBefore(currentTime)) {
+        return "Указанная дата уже прошла";
+      }
       // получаем мастеров, которые оказывают услугу в заданную дату
       const employees = await getEmployeesByService(branchId, date, 1, [
         serviceId,
